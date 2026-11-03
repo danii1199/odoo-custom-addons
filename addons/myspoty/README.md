@@ -12,7 +12,7 @@ Spotify y estadísticas propias. Necesita **Spotify Premium** para reproducir.
 1. En https://developer.spotify.com/dashboard crea una app con la Redirect URI
    `http://127.0.0.1:8001/callback` y marca *Web API* y *Web Playback SDK*.
 2. Pega el **Client ID** en `.env` detrás de `SPOTIFY_CLIENT_ID=` (no hace falta el client secret).
-3. `~/servicios/servicios.sh build odoo` (si luego cambias `.env`: `~/servicios/servicios.sh recrear odoo`; `restart` no lo relee)
+3. Reconstruye la imagen (si luego cambias `.env`, recrea el contenedor: `restart` no lo relee)
 4. Abre **http://127.0.0.1:8001** (con `127.0.0.1`, no `localhost`) y entra con Spotify.
 
 ## Uso
@@ -46,13 +46,13 @@ Spotify y estadísticas propias. Necesita **Spotify Premium** para reproducir.
 
 - Cada persona entra con **su** Spotify y tiene sus propias etiquetas, inteligentes, tops e historial.
 - Spotify (modo desarrollo) permite **25 usuarios**: añade el email de cada uno en tu app del panel → *User Management*.
-- Para que otros inicien sesión hace falta una dirección **https** registrada como Redirect URI (Tailscale o dominio) y
+- Para que otros inicien sesión hace falta una dirección **https** registrada como Redirect URI (proxy o dominio) y
   ponerla en `SPOTIFY_REDIRECT_URIS` (separadas por comas) en `.env`.
 - Tus otros dispositivos: tu foto → **Conectar otro dispositivo** → código de 6 letras para escribir en la pantalla de entrada.
 
 ## Seguridad
 
-- Abierto a la red de casa en `http://IP-de-este-PC:8001`; cada usuario necesita su sesión (login o código). Desde otros PC no suena en el navegador (Spotify exige HTTPS): hace de mando a distancia de tus dispositivos.
+- Abierto a la red de casa en `http://<servidor>:8001`; cada usuario necesita su sesión (login o código). Desde otros PC no suena en el navegador (Spotify exige HTTPS): hace de mando a distancia de tus dispositivos.
   El login con Spotify solo funciona desde este PC por `http://127.0.0.1:8001`.
 - Tu contraseña nunca pasa por myspoty: inicias sesión en la página de Spotify.
 - `.env` está fuera de git; los datos viven en el volumen Docker `postgres-datos`, fuera del repo.

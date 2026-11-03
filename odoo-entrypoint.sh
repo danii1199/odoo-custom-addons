@@ -2,10 +2,10 @@
 # Genera /etc/odoo/odoo.conf a partir de odoo.conf (montado como odoo.base.conf) y añade lo que no va en git:
 #  - addons_path: /mnt/extra-addons (= addons/ del repo; cada subcarpeta con __manifest__.py es un módulo),
 #    solo si ya hay alguno
-#  - admin_passwd: contraseña maestra del gestor de bases de datos (ODOO_MASTER_PASSWORD en ~/servicios/.env)
+#  - admin_passwd: contraseña maestra del gestor de bases de datos (variable de entorno ODOO_MASTER_PASSWORD)
 # Después sigue con el entrypoint oficial de la imagen.
 set -e
-: "${ODOO_MASTER_PASSWORD:?Falta ODOO_MASTER_PASSWORD en ~/servicios/.env (protege el gestor de bases de datos)}"
+: "${ODOO_MASTER_PASSWORD:?Falta la variable de entorno ODOO_MASTER_PASSWORD (protege el gestor de bases de datos)}"
 
 paths=""
 if compgen -G "/mnt/extra-addons/*/__manifest__.py" > /dev/null; then

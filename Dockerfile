@@ -2,7 +2,7 @@
 FROM odoo:20
 
 USER root
-# Dependencias Python que pidan los módulos (indica cuál lo pide). Tras cambiarlas: ~/servicios/servicios.sh build odoo
+# Dependencias Python que pidan los módulos (indica cuál lo pide). Tras cambiarlas, reconstruye la imagen
 # RUN pip install --no-cache-dir --break-system-packages "anthropic>=1.0"   # fuertafit: entrenador IA (de pago)
 
 COPY odoo-entrypoint.sh /odoo-entrypoint.sh

@@ -5,8 +5,8 @@ vídeos; no descarga nada. Cada usuario de Odoo tiene su calendario, historial y
 
 ## Uso
 
-Odoo (ver el `README.md` de la raíz) → base `claude-main` → menú **Mi rutina Fuerta**, o directamente
-`http://IP-de-este-PC:8069/fuerta`. Pestañas: Hoy, Semana, Calendario, Rutinas, Actualizar (y Entrenador solo con
+Odoo (ver el `README.md` de la raíz) → tu base → menú **Mi rutina Fuerta**, o directamente
+`http://<servidor>:8069/fuerta`. Pestañas: Hoy, Semana, Calendario, Rutinas, Actualizar (y Entrenador solo con
 API key). En Odoo, **Mis datos** y **Catálogo** muestran lo mismo en listas.
 
 ## Actualizar el catálogo
@@ -18,7 +18,7 @@ navegador) y las envía a `/fuerta/api/catalog/import`.
 ## Tras cambiar código (desde la raíz del repo)
 
 ```bash
-docker exec -it odoo odoo module upgrade -d claude-main fuertafit && docker restart odoo
+docker exec -it odoo odoo module upgrade -d <base> fuertafit && docker restart odoo
 ```
 
 ## Migrar desde la web antigua
@@ -26,10 +26,10 @@ docker exec -it odoo odoo module upgrade -d claude-main fuertafit && docker rest
 La web anterior guardaba los datos en la base `rutinas`. Para pasarlos a tu usuario de Odoo (solo lee `rutinas`):
 
 ```bash
-docker exec -i -e MIGRAR_LOGIN=admin odoo odoo shell -d claude-main --no-http < addons/fuertafit/scripts/migrar_rutinas.py
+docker exec -i -e MIGRAR_LOGIN=admin odoo odoo shell -d <base> --no-http < addons/fuertafit/scripts/migrar_rutinas.py
 ```
 
 ## Entrenador con IA (opcional, de pago)
 
 Pon `ANTHROPIC_API_KEY` en el `.env` raíz, descomenta el SDK en el `Dockerfile` raíz y
-`~/servicios/servicios.sh build odoo`. Sin clave todo funciona igual salvo el chat.
+reconstruye la imagen. Sin clave todo funciona igual salvo el chat.
