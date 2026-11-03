@@ -19,12 +19,14 @@ a alguien con cuenta a un grupo.
 ```
 models/       grupo.py (gastos.grupo + simplificar_deudas, saldos, correos, webhook, cron), miembro.py (gastos.miembro,
               invitar al portal), gasto.py (gastos.gasto + gastos.gasto.linea, repartir()), liquidacion.py (pagos +
-              gastos.liquidacion.historial)
+              gastos.liquidacion.historial), splitwise.py (CSV de Splitwise: leer_csv/movimientos, exportar/importar
+              en gastos.grupo, splitwise_ref en gastos y pagos, asistente gastos.importar.splitwise del backend)
 controllers/  main.py: /gastos, /gastos/nuevo-grupo, /gastos/<id>, /gastos/<id>/ajustes (GET/POST),
               /gastos/<id>/archivar, /gastos/<id>/miembros/nuevo, /gastos/<id>/miembros/<mid>/<invitar|correo|archivar|
               activar|quitar>, /gastos/<id>/nuevo, /gastos/<id>/gasto/<gid> (editar), /gastos/<id>/pago/<pid> (editar), /gastos/<id>/saldar,
-              /gastos/<id>/borrar/<gasto|pago>/<id> (POST con csrf_token)
-views/        grupo/gasto/liquidacion_views.xml, menus.xml, web_templates.xml (web /gastos)
+              /gastos/<id>/borrar/<gasto|pago>/<id> (POST con csrf_token), /gastos/<id>/exportar-splitwise (CSV),
+              /gastos/<id>/importar-splitwise (POST con el archivo: revisión) y …/importar-splitwise/confirmar
+views/        grupo/gasto/liquidacion_views.xml, splitwise_views.xml (asistente), menus.xml, web_templates.xml (web /gastos)
 data/         moneda.xml (llama a `_forzar_euros`: EUR activo y todos los grupos en EUR, en cada actualización),
               mail_templates.xml (cuerpos QWeb de los correos), ir_cron.xml (resumen semanal, lunes 9:00),
               website_menu.xml («Gastos» en el menú del sitio, solo con group_gastos_web; se reescribe en cada copia)
@@ -71,6 +73,22 @@ tests/        test_gastos.py: reparto, deudas, correos, permisos de portal y la 
   `gastos.liquidacion.historial` (quién, cuándo, «Campo: antes → después»), deja nota en el grupo y avisa
   (`pago_editado`, con `cambios`). Sin cambios reales, no hay historial. Borrar: cualquier miembro.
 - QWeb: un `<textarea t-out="x"/>` con `x` = False **no se pinta**: usar `t-out="x or ''"`.
+
+## Splitwise (models/splitwise.py, 2026-11-03)
+
+- CSV de «Exportar como hoja de cálculo» de Splitwise: `Date,Description,Category,Cost,Currency` + una columna por
+  persona con su neto (pagado − su parte; la fila suma 0). Pagos: categoría `Payment` (quien paga, en positivo).
+  Fila final «Total balance» (se ignora al importar). Cabeceras también en español; separador `,`, `;` o tabulador.
+- Importar: un pagador → gasto con importes exactos (o `igual` si sale idéntico a `repartir()`); varios pagadores
+  (aquí no existe) → un gasto por acreedor con lo que le deben (saldos idénticos, nota en el gasto). Los pagos se
+  crean con sudo aunque no los hiciera quien importa (es historial; «nadie paga por otro» es para los nuevos).
+  Solo EUR: otras monedas, filas que no cuadran o fechas raras → errores por línea (el resto se importa).
+- `splitwise_ref` (sha1 de fecha, concepto, coste y netos) en gastos y pagos: reimportar se salta lo ya importado.
+- Contexto `gastos_importando`: `create()` de gastos y pagos no deja notas ni avisa (ni correo ni webhook); una
+  sola nota en el grupo al final. Personas sin miembro: se busca por nombre (sin tildes ni mayúsculas) o se crea
+  contacto + miembro (sudo, tras `_gestionable()` en la web / `check_access("write")` en el asistente).
+- Exportar: miembros activos o con saldo; categorías a las de Splitwise (`A_SPLITWISE`) y de vuelta por palabras
+  (`DE_SPLITWISE`). Exportar e importar en otro grupo da los mismos saldos (test `test_ida_y_vuelta`).
 
 ## Avisos
 

@@ -50,6 +50,10 @@
                     <button name="action_recordar_pagos" type="object" string="Recordar pagos" class="btn-primary"
                             invisible="not id" help="Correo ahora mismo a quien debe dinero"/>
                     <button name="action_abrir_web" type="object" string="Abrir en la web" invisible="not id"/>
+                    <button name="action_exportar_splitwise" type="object" string="Exportar a Splitwise" invisible="not id"
+                            help="Descarga el grupo en el CSV de Splitwise"/>
+                    <button name="action_importar_splitwise" type="object" string="Importar de Splitwise" invisible="not id"
+                            help="Trae los gastos y pagos de un CSV exportado de Splitwise"/>
                 </header>
                 <sheet>
                     <widget name="web_ribbon" title="Archivado" bg_color="text-bg-danger" invisible="active"/>

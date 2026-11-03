@@ -391,6 +391,22 @@
                     quien no tiene gastos ni pagos.</p>
             </section>
 
+            <section class="gs-section gs-card">
+                <h2>Splitwise</h2>
+                <p class="gs-muted gs-m0">Exporta el grupo en el CSV de Splitwise o trae uno desde Splitwise (en el grupo,
+                    «Exportar como hoja de cálculo»). Antes de importar verás qué entra y a quién corresponde cada persona;
+                    lo que ya se importó no se repite.</p>
+                <div class="gs-actions">
+                    <a class="gs-btn" t-att-href="'/gastos/%s/exportar-splitwise' % grupo.id">⬇ Exportar CSV</a>
+                </div>
+                <form class="gs-form" method="post" enctype="multipart/form-data"
+                      t-att-action="'/gastos/%s/importar-splitwise' % grupo.id">
+                    <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
+                    <label>CSV de Splitwise <input type="file" name="archivo" accept=".csv,text/csv" required=""/></label>
+                    <button class="gs-btn gs-btn-primary gs-btn-block" type="submit">Revisar e importar…</button>
+                </form>
+            </section>
+
             <section class="gs-section">
                 <form method="post" t-att-action="'/gastos/%s/archivar' % grupo.id">
                     <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
@@ -398,6 +414,44 @@
                     <button t-else="" class="gs-btn gs-btn-block" type="submit">Reactivar el grupo</button>
                 </form>
             </section>
+        </t>
+    </template>
+
+    <template id="web_importar" name="Gastos: importar de Splitwise">
+        <t t-call="gastos.web_layout">
+            <a class="gs-back" t-att-href="'/gastos/%s/ajustes' % grupo.id">‹ Ajustes</a>
+            <header class="gs-head"><h1>Importar de Splitwise</h1></header>
+
+            <div class="gs-card gs-resumen">
+                <div><strong t-out="info['gastos']"/><small>gastos</small></div>
+                <div><strong t-out="info['pagos']"/><small>pagos</small></div>
+                <div><strong t-out="info['repetidas']"/><small>ya importados</small></div>
+            </div>
+            <div t-foreach="info['errores']" t-as="e" class="gs-alert gs-alert-error" t-out="e"/>
+            <p t-if="info['errores']" class="gs-muted">Las líneas con error no se importan; el resto, sí.</p>
+
+            <form t-if="info['nuevas']" class="gs-card gs-form gs-section" method="post"
+                  t-att-action="'/gastos/%s/importar-splitwise/confirmar' % grupo.id">
+                <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
+                <input type="hidden" name="csv" t-att-value="csv"/>
+                <h2>¿Quién es quién?</h2>
+                <p class="gs-muted">Cada persona de Splitwise con un miembro del grupo. Si no está, se crea.</p>
+                <t t-foreach="info['personas']" t-as="nombre">
+                    <label>
+                        <t t-out="nombre"/>
+                        <select t-att-name="'p_%s' % nombre_index">
+                            <option value="">➕ Crear miembro «<t t-out="nombre"/>»</option>
+                            <option t-foreach="miembros" t-as="m" t-att-value="m.id"
+                                    t-att-selected="(m == info['propuesta'][nombre]) or None" t-out="m.name"/>
+                        </select>
+                    </label>
+                </t>
+                <button class="gs-btn gs-btn-primary gs-btn-block" type="submit">
+                    Importar <t t-out="info['gastos']"/> gastos y <t t-out="info['pagos']"/> pagos
+                </button>
+                <p class="gs-muted gs-ayuda">No se avisa por correo de cada movimiento importado: queda una nota en el grupo.</p>
+            </form>
+            <p t-else="" class="gs-empty">No hay nada nuevo que importar.</p>
         </t>
     </template>
 </odoo>

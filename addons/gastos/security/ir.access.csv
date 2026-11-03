@@ -17,3 +17,5 @@ access_liquidacion_portal,Pagos: de sus grupos (web: portal o internos invitados
 access_historial_admin,Historial de pagos: todo,gastos.liquidacion.historial,gastos.group_gastos_manager,r,
 access_historial_user,Historial de pagos: de sus grupos,gastos.liquidacion.historial,gastos.group_gastos_user,r,"['|', ('grupo_id.member_ids.user_id', '=', user.id), ('grupo_id.create_uid', '=', user.id)]"
 access_historial_portal,Historial de pagos: de sus grupos (web: portal o internos invitados),gastos.liquidacion.historial,gastos.group_gastos_web,r,"[('grupo_id.member_ids.user_id', '=', user.id)]"
+access_importar_splitwise,Importar de Splitwise,gastos.importar.splitwise,gastos.group_gastos_user,crud,
+access_importar_splitwise_linea,Importar de Splitwise: personas,gastos.importar.splitwise.linea,gastos.group_gastos_user,crud,

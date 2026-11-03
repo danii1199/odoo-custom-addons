@@ -18,6 +18,11 @@ reparte y quién debe a quién.
   (quién, cuándo y qué cambió) bajo el pago, en la web y en el backend.
 - **Avisos por correo**: a los demás miembros con cada gasto o pago, botón *Recordar pagos* y resumen semanal (los
   lunes) a quien tenga algo pendiente. Se activan o desactivan por grupo, en la pestaña *Avisos*.
+- **Splitwise**: exporta un grupo en el CSV de Splitwise o importa el que exportas desde Splitwise (en el grupo,
+  «Exportar como hoja de cálculo»). En la web, en ⚙ *Ajustes → Splitwise*; en el backend, botones *Exportar a
+  Splitwise* e *Importar de Splitwise* del grupo. Antes de importar ves cuántos gastos y pagos entran y emparejas cada
+  persona de Splitwise con un miembro (o se crea). Los saldos quedan iguales que en Splitwise; volver a importar el
+  mismo archivo no repite nada y no se manda un correo por cada movimiento importado. Solo euros.
 - **n8n (opcional)**: en *Avisos → Webhook* pon la URL de un nodo Webhook de n8n y recibirá cada evento en JSON
   (gasto, pago, recordatorio, resumen, con saldos y deudas). Desde n8n puedes reenviarlo a Telegram, WhatsApp…
 

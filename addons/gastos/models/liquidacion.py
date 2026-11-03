@@ -78,6 +78,8 @@ class GastosLiquidacion(models.Model):
     def create(self, vals_list):
         pagos = super().create(vals_list)
         pagos._check_pagas_tu()
+        if self.env.context.get("gastos_importando"):
+            return pagos  # importación de Splitwise: sin avisos por pago
         for p in pagos:
             g = p.grupo_id
             g.sudo().message_post(body=Markup("Pago: %s (apuntado por %s).") % (p.display_name, self.env.user.name))

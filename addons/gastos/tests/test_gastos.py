@@ -1,8 +1,11 @@
-from odoo.exceptions import AccessError, ValidationError
+import base64
+
+from odoo.exceptions import AccessError, UserError, ValidationError
 from odoo.tests import HttpCase, TransactionCase, tagged
 
 from ..models.gasto import repartir
 from ..models.grupo import simplificar_deudas
+from ..models.splitwise import leer_csv, movimientos
 
 
 @tagged("post_install", "-at_install")
@@ -223,6 +226,24 @@ class TestGastosWebGestion(HttpCase):
         self.assertFalse(grupo.active)
         self.assertIn("Grupos archivados", self.url_open("/gastos").text)
 
+    def test_splitwise_web(self):
+        grupo = self.env["gastos.grupo"].create({"name": "Casa", "member_ids": [(0, 0, {"partner_id": self.partner.id})]})
+        r = self.url_open(f"/gastos/{grupo.id}/exportar-splitwise")
+        self.assertEqual(r.status_code, 200)
+        self.assertIn("attachment", r.headers["Content-Disposition"])
+        self.assertTrue(r.text.startswith("Date,Description,Category,Cost,Currency,Fran"))
+        csv_texto = "Date,Description,Category,Cost,Currency,Fran,Gil\n2026-10-01,Pizza,Dining out,20.00,EUR,10.00,-10.00\n"
+        r = self.url_open(f"/gastos/{grupo.id}/importar-splitwise", data={"csrf_token": self.csrf_token()},
+                          files={"archivo": ("export.csv", csv_texto.encode(), "text/csv")})
+        self.assertEqual(r.status_code, 200)
+        self.assertIn("¿Quién es quién?", r.text)
+        fran = grupo.member_ids
+        r = self._post(f"/gastos/{grupo.id}/importar-splitwise/confirmar",
+                       csv=base64.b64encode(csv_texto.encode()).decode(), p_0=str(fran.id), p_1="")
+        self.assertIn("Importados", r.text)
+        self.assertEqual(sorted(grupo.member_ids.mapped("name")), ["Fran", "Gil"])
+        self.assertEqual(fran.saldo, 10)
+
     def test_grupo_ajeno(self):
         otro = self.env["res.partner"].create({"name": "Hugo"})
         ajeno = self.env["gastos.grupo"].create({"name": "Ajeno", "member_ids": [(0, 0, {"partner_id": otro.id})]})
@@ -303,3 +324,93 @@ class TestPagosEditables(TransactionCase):
         # Lo suyo sí
         Pago.with_user(self.users["Pau"]).create({
             "grupo_id": self.grupo.id, "pagador_id": self.m["Pau"].id, "receptor_id": self.m["Olga"].id, "importe": 5})
+
+
+# CSV como lo exporta Splitwise: una cena que paga Ana, un hotel que pagan Ana y Bea a medias pero solo es de Ana,
+# Bea y Carlos, un pago de Carlos a Ana, una línea en dólares (error) y la fila final de saldos
+CSV_SPLITWISE = """Date,Description,Category,Cost,Currency,Ana,Bea,Carlos
+2026-10-01,Cena,Dining out,30.00,EUR,20.00,-10.00,-10.00
+2026-10-02,Hotel,Hotel,90.00,EUR,15.00,15.00,-30.00
+2026-10-03,Carlos paid Ana,Payment,25.00,EUR,-25.00,0.00,25.00
+2026-10-04,Souvenir,General,10.00,USD,5.00,-5.00,0.00
+
+,Total balance,,,EUR,10.00,5.00,-15.00
+"""
+
+
+@tagged("post_install", "-at_install")
+class TestSplitwise(TransactionCase):
+
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+        cls.Grupo = cls.env["gastos.grupo"]
+
+    def _grupo(self, *nombres):
+        return self.Grupo.create({"name": "Splitwise", "member_ids": [
+            (0, 0, {"partner_id": self.env["res.partner"].create({"name": n}).id}) for n in nombres]})
+
+    @staticmethod
+    def _saldos(grupo):
+        return {m.name: c for m, c in grupo.saldos_centimos().items() if c}
+
+    def test_leer_csv(self):
+        datos = leer_csv(CSV_SPLITWISE)
+        self.assertEqual(datos["personas"], ["Ana", "Bea", "Carlos"])
+        self.assertEqual([f["concepto"] for f in datos["filas"]], ["Cena", "Hotel", "Carlos paid Ana"])
+        self.assertEqual(len(datos["errores"]), 1)
+        self.assertIn("USD", datos["errores"][0])
+        cena, hotel, pago = datos["filas"]
+        self.assertEqual((cena["categoria"], cena["importe"], cena["pago"]), ("comida", 3000, False))
+        self.assertTrue(pago["pago"])
+        [(tipo, pagador, total, reparto, partes, nota)] = movimientos(cena)
+        self.assertEqual((tipo, pagador, total, reparto), ("gasto", "Ana", 3000, "igual"))
+        self.assertEqual(sorted(partes), [("Ana", 1000), ("Bea", 1000), ("Carlos", 1000)])
+        self.assertEqual(movimientos(pago), [("pago", "Carlos", "Ana", 2500)])
+        # Dos pagadores: un gasto por cada uno, con lo que le deben
+        partes = movimientos(hotel)
+        self.assertEqual(sorted((m[1], m[2]) for m in partes), [("Ana", 1500), ("Bea", 1500)])
+        with self.assertRaises(UserError):
+            leer_csv("Nombre,Apellidos\nAna,López\n")
+
+    def test_importar(self):
+        grupo = self._grupo("ana")  # se empareja sin mirar mayúsculas; Bea y Carlos se crean
+        info = grupo.analizar_splitwise(CSV_SPLITWISE)
+        self.assertEqual((info["gastos"], info["pagos"], info["repetidas"]), (2, 1, 0))
+        self.assertEqual(info["propuesta"]["Ana"], grupo.member_ids)
+        mensajes = len(grupo.message_ids)
+        correos = self.env["mail.mail"].search_count([])
+        self.assertEqual(grupo.importar_splitwise(CSV_SPLITWISE, {}), (3, 1))  # el hotel son 2 gastos
+        self.assertEqual(self._saldos(grupo), {"ana": 1000, "Bea": 500, "Carlos": -1500})  # = Total balance
+        self.assertEqual(len(grupo.member_ids), 3)
+        self.assertEqual(len(grupo.message_ids), mensajes + 1)  # una sola nota
+        self.assertEqual(self.env["mail.mail"].search_count([]), correos)  # ningún correo
+        pago = grupo.liquidacion_ids
+        self.assertEqual((pago.pagador_id.name, pago.receptor_id.name, pago.importe), ("Carlos", "ana", 25))
+        # Volver a importar el mismo archivo no repite nada
+        self.assertEqual(grupo.analizar_splitwise(CSV_SPLITWISE)["repetidas"], 3)
+        self.assertEqual(grupo.importar_splitwise(CSV_SPLITWISE, {}), (0, 0))
+
+    def test_ida_y_vuelta(self):
+        """Exportar un grupo e importarlo en otro deja los mismos saldos."""
+        origen = self._grupo("Ana", "Bea", "Carlos")
+        m = {x.name: x for x in origen.member_ids}
+        Gasto = self.env["gastos.gasto"]
+        Gasto.create({"grupo_id": origen.id, "name": "Luz, agua", "importe": 100, "pagador_id": m["Ana"].id,
+                      "categoria": "casa", "linea_ids": [(0, 0, {"miembro_id": x.id}) for x in m.values()]})
+        Gasto.create({"grupo_id": origen.id, "name": "Taxi", "importe": 12.5, "pagador_id": m["Bea"].id,
+                      "categoria": "transporte", "reparto": "importes", "linea_ids": [
+                          (0, 0, {"miembro_id": m["Bea"].id, "valor": 2.5}),
+                          (0, 0, {"miembro_id": m["Carlos"].id, "valor": 10})]})
+        self.env["gastos.liquidacion"].sudo().create({"grupo_id": origen.id, "pagador_id": m["Carlos"].id,
+                                                      "receptor_id": m["Ana"].id, "importe": 20})
+        csv_texto = origen.exportar_splitwise()
+        self.assertTrue(csv_texto.startswith("Date,Description,Category,Cost,Currency,Ana,Bea,Carlos\n"))
+        self.assertIn('"Luz, agua",Utilities,100.00,EUR', csv_texto)
+        self.assertIn("Carlos paid Ana,Payment,20.00", csv_texto)
+        destino = self._grupo("Ana", "Bea", "Carlos")
+        destino.importar_splitwise(csv_texto, {})
+        self.assertEqual(self._saldos(destino), self._saldos(origen))
+        luz = destino.gasto_ids.filtered(lambda g: g.name == "Luz, agua")
+        self.assertEqual((luz.reparto, luz.categoria), ("igual", "casa"))
+        self.assertEqual(destino.gasto_ids.filtered(lambda g: g.name == "Taxi").categoria, "transporte")

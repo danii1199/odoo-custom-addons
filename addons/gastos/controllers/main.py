@@ -1,6 +1,6 @@
 """Web /gastos para los miembros (usuarios de portal o internos): todo lo que se hace en el backend, desde el móvil.
 Grupos (crear, ajustes, imagen, archivar), miembros (añadir, invitar, archivar, quitar), gastos (apuntar, editar,
-borrar) y pagos (saldar, borrar).
+borrar), pagos (saldar, borrar) y exportar/importar el CSV de Splitwise.
 
 Solo con el grupo gastos.group_gastos_web (si no, 404 en todas las rutas: `_acceso`). Lo que ve y edita cada uno
 lo limitan los dominios de security/ir.access.csv (solo sus grupos), sin sudo. Excepciones
@@ -16,6 +16,7 @@ from odoo.http import request
 from odoo.tools import email_normalize
 
 from ..models.gasto import CATEGORIAS, REPARTOS
+from ..models.splitwise import MAX_CSV
 
 STATIC_DIR = Path(__file__).resolve().parent.parent / "static" / "src"
 VERSION = str(int(max(p.stat().st_mtime for p in STATIC_DIR.rglob("*") if p.is_file())))
@@ -397,3 +398,59 @@ class GastosWeb(http.Controller):
             request.env.cr.rollback()
             return self._volver(f"/gastos/{grupo.id}", error="No se ha podido borrar.")
         return self._volver(f"/gastos/{grupo.id}", "Borrado")
+
+    # ------------------------------------------------------------------ Splitwise
+
+    @http.route("/gastos/<int:grupo_id>/exportar-splitwise", type="http", auth="user", website=True, methods=["GET"])
+    def exportar_splitwise(self, grupo_id, **kw):
+        grupo = self._grupo(grupo_id, archivados=True)
+        nombre = grupo.nombre_exportacion()
+        return request.make_response(grupo.exportar_splitwise().encode("utf-8"), headers=[
+            ("Content-Type", "text/csv; charset=utf-8"),
+            ("Content-Disposition", f"attachment; filename=\"{nombre}\"; filename*=UTF-8''{quote(nombre)}"),
+        ])
+
+    @staticmethod
+    def _leer_csv_subido():
+        archivo = request.httprequest.files.get("archivo")
+        if not archivo or not archivo.filename:
+            raise UserError("Elige el CSV que exportaste de Splitwise.")
+        datos = archivo.read(MAX_CSV + 1)
+        if len(datos) > MAX_CSV:
+            raise UserError("El archivo es demasiado grande (máximo 5 MB).")
+        try:
+            return datos.decode("utf-8-sig")
+        except UnicodeDecodeError:
+            return datos.decode("latin-1")
+
+    @http.route("/gastos/<int:grupo_id>/importar-splitwise", type="http", auth="user", website=True, methods=["POST"])
+    def importar_splitwise(self, grupo_id, **post):
+        """Paso 1: leer el CSV y enseñar qué se va a importar y a qué miembro corresponde cada persona."""
+        grupo = self._gestionable(grupo_id)
+        try:
+            texto = self._leer_csv_subido()
+            info = grupo.analizar_splitwise(texto)
+        except UserError as e:
+            return self._volver(f"/gastos/{grupo.id}/ajustes", error=_msg(e))
+        return self._render("gastos.web_importar", grupo=grupo, info=info,
+                            miembros=grupo.with_context(active_test=False).member_ids,
+                            csv=base64.b64encode(texto.encode()).decode())
+
+    @http.route("/gastos/<int:grupo_id>/importar-splitwise/confirmar", type="http", auth="user", website=True,
+                methods=["POST"])
+    def confirmar_splitwise(self, grupo_id, **post):
+        """Paso 2: importar con el emparejamiento elegido (p_<n> = id del miembro o vacío para crear uno nuevo)."""
+        grupo = self._gestionable(grupo_id)
+        url = f"/gastos/{grupo.id}"
+        try:
+            texto = base64.b64decode(post.get("csv") or "").decode()
+            personas = grupo.analizar_splitwise(texto)["personas"]
+            Miembro = request.env["gastos.miembro"].sudo().with_context(active_test=False)
+            mapeo = {n: Miembro.browse(int(post.get(f"p_{i}") or 0)).exists() for i, n in enumerate(personas)}
+            n_gastos, n_pagos = grupo.importar_splitwise(texto, mapeo)
+        except (UserError, ValidationError, AccessError, ValueError) as e:
+            request.env.cr.rollback()
+            return self._volver(f"{url}/ajustes", error=f"No se ha podido importar: {_msg(e)}")
+        if not n_gastos and not n_pagos:
+            return self._volver(url, "No había nada nuevo que importar")
+        return self._volver(url, f"Importados de Splitwise {n_gastos} gastos y {n_pagos} pagos")

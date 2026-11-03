@@ -112,6 +112,8 @@ class GastosGasto(models.Model):
     @api.model_create_multi
     def create(self, vals_list):
         gastos = super().create(vals_list)
+        if self.env.context.get("gastos_importando"):
+            return gastos  # importación de Splitwise: sin avisos por gasto (deja una sola nota al final)
         for g in gastos:
             g.grupo_id.sudo().message_post(body=Markup("Gasto <b>%s</b>: %s, pagado por %s (apuntado por %s).") % (
                 g.name, g.grupo_id._fmt(g.importe), g.pagador_id.name, self.env.user.name))
