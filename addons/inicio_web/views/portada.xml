@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Portada del sitio: se añade dentro del t-call a website.layout de website.homepage, sin depender del #wrap
+     (zona editable): si alguien lo borra con el editor, la portada no se rompe. El CSS pone el panel primero
+     (.ini-app con order -1) y lo que se arrastre al #wrap sale debajo. Datos: website.inicio_datos() (models/website.py).
+     CSS bajo .ini-app (static/src/css/portada.css); reloj, saludo y foco de las tarjetas en static/src/js/portada.js. -->
+<odoo>
+    <template id="portada" inherit_id="website.homepage" name="Portada: panel de inicio">
+        <xpath expr="//t[@t-call='website.layout']" position="inside">
+            <t t-set="ini" t-value="website.inicio_datos()"/>
+            <section class="ini-app">
+                <div class="ini-fondo" aria-hidden="true">
+                    <span class="ini-mancha ini-m1"/><span class="ini-mancha ini-m2"/><span class="ini-mancha ini-m3"/>
+                    <span class="ini-rejilla"/>
+                </div>
+                <div class="ini-contenido">
+                    <header class="ini-cabecera">
+                        <div class="ini-reloj" data-ini-reloj="1" t-out="ini['hora']"/>
+                        <div class="ini-texto">
+                            <p class="ini-fecha" data-ini-fecha="1" t-out="ini['fecha']"/>
+                            <h1 class="ini-saludo">
+                                <span data-ini-saludo="1" t-out="ini['saludo']"/><t t-if="ini['nombre']">,
+                                <em t-out="ini['nombre']"/></t>
+                            </h1>
+                            <p class="ini-frase">«<t t-out="ini['frase']"/>»</p>
+                        </div>
+                    </header>
+
+                    <details t-if="ini['menu']" class="ini-ajustes">
+                        <summary>Personalizar menú</summary>
+                        <form action="/inicio/menu" method="post">
+                            <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
+                            <p>Elige qué quieres ver en el menú de arriba y aquí (solo para ti; los permisos no cambian).</p>
+                            <div class="ini-opciones">
+                                <label t-foreach="ini['menu']" t-as="m" class="ini-opcion">
+                                    <input type="checkbox" name="visible" t-att-value="m['url']" t-att-checked="not m['oculto'] or None"/>
+                                    <span t-out="m['nombre']"/>
+                                </label>
+                            </div>
+                            <button type="submit" class="ini-boton">Guardar</button>
+                        </form>
+                    </details>
+
+                    <div t-if="ini['publico']" class="ini-aviso">
+                        <p>Esto es un rincón privado. Si tienes cuenta, entra para ver tus cosas.</p>
+                        <a class="ini-boton" href="/web/login?redirect=/">Entrar</a>
+                    </div>
+
+                    <div class="ini-tarjetas" t-if="ini['tarjetas']">
+                        <t t-foreach="ini['tarjetas']" t-as="t">
+                            <div t-attf-class="ini-tarjeta ini-#{t['clave']}">
+                                <div t-if="t.get('fondo')" class="ini-imagen" t-attf-style="background-image: url('#{t['fondo']}')"/>
+                                <a class="ini-enlace" t-att-href="t['url']" t-att-aria-label="t['titulo']"/>
+                                <span class="ini-marca" t-out="t['marca']"/>
+                                <h2 t-out="t['titulo']"/>
+                                <p t-attf-class="ini-dato #{t.get('tono') and 'ini-' + t['tono'] or ''}" t-out="t['dato']"/>
+                                <div t-if="t.get('semana')" class="ini-semana">
+                                    <span t-foreach="t['semana']" t-as="d"
+                                          t-attf-class="#{'hecho' if d['hecho'] else ''} #{'hoy' if d['hoy'] else ''}"
+                                          t-out="d['letra']"/>
+                                </div>
+                                <t t-if="t.get('extra')">
+                                    <a t-if="t.get('extra_url')" class="ini-extra" t-att-href="t['extra_url']">
+                                        <t t-out="t['extra']"/> →</a>
+                                    <p t-else="" class="ini-extra" t-out="t['extra']"/>
+                                </t>
+                            </div>
+                        </t>
+                    </div>
+                </div>
+            </section>
+        </xpath>
+    </template>
+</odoo>

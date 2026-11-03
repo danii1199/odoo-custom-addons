@@ -1,0 +1,160 @@
+/* Portada (inicio_web): todo bajo .ini-app para no chocar con Bootstrap ni con los temas del sitio. */
+.ini-app {
+    --ini-fondo: #0d0f1a;
+    --ini-texto: #eef0ff;
+    --ini-suave: #9aa0c3;
+    --ini-borde: rgba(255, 255, 255, .09);
+    position: relative;
+    overflow: clip;
+    min-height: calc(100vh - 80px);
+    background: var(--ini-fondo);
+    color: var(--ini-texto);
+    font-family: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    isolation: isolate;
+    order: -1;
+}
+
+/* el panel va dentro de <main> junto al #wrap editable: siempre primero */
+main:has(> .ini-app) { display: flex; flex-direction: column; }
+main:has(> .ini-app) > .ini-app { order: -1; }
+
+/* ---------- fondo animado ---------- */
+.ini-fondo { position: absolute; inset: 0; z-index: -1; pointer-events: none; }
+.ini-mancha {
+    position: absolute; width: 46vmax; height: 46vmax; border-radius: 50%;
+    filter: blur(100px); opacity: .32; mix-blend-mode: screen;
+    animation: ini-flota 26s ease-in-out infinite alternate;
+}
+.ini-m1 { background: #6c4bff; top: -18vmax; left: -10vmax; }
+.ini-m2 { background: #ff4d8d; bottom: -22vmax; right: -12vmax; animation-duration: 32s; animation-delay: -8s; }
+.ini-m3 { background: #19c3b0; top: 30%; left: 45%; width: 30vmax; height: 30vmax; opacity: .3; animation-duration: 38s; }
+.ini-rejilla {
+    position: absolute; inset: 0;
+    background-image:
+        linear-gradient(rgba(255, 255, 255, .035) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255, 255, 255, .035) 1px, transparent 1px);
+    background-size: 48px 48px;
+    mask-image: radial-gradient(ellipse at 50% 30%, #000 20%, transparent 75%);
+}
+@keyframes ini-flota {
+    0% { transform: translate(0, 0) scale(1); }
+    50% { transform: translate(6vmax, 4vmax) scale(1.08); }
+    100% { transform: translate(-4vmax, 7vmax) scale(.95); }
+}
+
+.ini-contenido { max-width: 1120px; margin: 0 auto; padding: clamp(2.5rem, 7vw, 6rem) 1.25rem 4rem; }
+
+/* ---------- cabecera: reloj + saludo ---------- */
+.ini-cabecera { display: flex; align-items: center; gap: clamp(1.25rem, 4vw, 3rem); flex-wrap: wrap; }
+.ini-reloj {
+    font-size: clamp(4rem, 13vw, 9rem); font-weight: 200; line-height: .9; letter-spacing: -.04em;
+    font-variant-numeric: tabular-nums;
+    background: linear-gradient(160deg, #fff 30%, #a99bff 100%);
+    -webkit-background-clip: text; background-clip: text; color: transparent;
+}
+.ini-dos { animation: ini-parpadeo 2s steps(1) infinite; }
+@keyframes ini-parpadeo { 50% { opacity: .25; } }
+.ini-texto { min-width: 0; }
+.ini-fecha { margin: 0 0 .35rem; color: var(--ini-suave); text-transform: uppercase; letter-spacing: .18em; font-size: .8rem; }
+.ini-saludo { margin: 0; font-size: clamp(1.8rem, 4.5vw, 3rem); font-weight: 700; color: var(--ini-texto); }
+.ini-saludo em { font-style: normal; color: #c6bbff; }
+.ini-frase { margin: .6rem 0 0; color: var(--ini-suave); font-size: 1.05rem; max-width: 34rem; }
+
+/* ---------- visitante sin sesión ---------- */
+.ini-aviso {
+    margin-top: 2.5rem; padding: 1.25rem 1.5rem; display: flex; align-items: center; justify-content: space-between;
+    gap: 1rem; flex-wrap: wrap; border: 1px solid var(--ini-borde); border-radius: 18px;
+    background: rgba(255, 255, 255, .04); backdrop-filter: blur(10px);
+}
+.ini-aviso p { margin: 0; color: var(--ini-suave); }
+.ini-boton {
+    padding: .6rem 1.4rem; border-radius: 999px; background: #fff; color: #14152a; font-weight: 600; text-decoration: none;
+}
+.ini-boton:hover { background: #c6bbff; color: #14152a; }
+
+/* ---------- personalizar menú ---------- */
+.ini-ajustes { margin-top: 1.75rem; }
+.ini-ajustes summary {
+    display: inline-block; cursor: pointer; list-style: none; padding: .4rem 1rem; border-radius: 999px;
+    border: 1px solid var(--ini-borde); color: var(--ini-suave); font-size: .85rem; background: rgba(255, 255, 255, .04);
+}
+.ini-ajustes summary::-webkit-details-marker { display: none; }
+.ini-ajustes summary::before { content: "⚙ "; }
+.ini-ajustes summary:hover, .ini-ajustes[open] summary { color: var(--ini-texto); border-color: rgba(255, 255, 255, .25); }
+.ini-ajustes form {
+    margin-top: .8rem; padding: 1.1rem 1.25rem; max-width: 34rem; border: 1px solid var(--ini-borde); border-radius: 18px;
+    background: rgba(20, 22, 40, .8); backdrop-filter: blur(10px);
+}
+.ini-ajustes form p { margin: 0 0 .8rem; color: var(--ini-suave); font-size: .9rem; }
+.ini-opciones { display: flex; flex-wrap: wrap; gap: .5rem; margin-bottom: 1rem; }
+.ini-opcion {
+    display: inline-flex; align-items: center; gap: .45rem; padding: .4rem .8rem; border-radius: 10px; cursor: pointer;
+    background: rgba(255, 255, 255, .06); color: var(--ini-texto); font-size: .9rem;
+}
+.ini-opcion input { accent-color: #8f7bff; }
+.ini-ajustes .ini-boton { border: 0; }
+
+/* ---------- tarjetas ---------- */
+.ini-tarjetas {
+    margin-top: clamp(2.5rem, 6vw, 4rem);
+    display: grid; gap: 1.1rem; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+}
+.ini-tarjeta {
+    --acento: #8f7bff; --x: 50%; --y: 50%;
+    position: relative; overflow: hidden; min-height: 190px; padding: 1.4rem 1.4rem 1.2rem;
+    display: flex; flex-direction: column; border-radius: 22px;
+    border: 1px solid var(--ini-borde);
+    background:
+        radial-gradient(320px circle at var(--x) var(--y), color-mix(in srgb, var(--acento) 22%, transparent), transparent 60%),
+        rgba(20, 22, 40, .72);
+    backdrop-filter: blur(12px);
+    transition: transform .25s ease, border-color .25s ease, box-shadow .25s ease;
+}
+.ini-tarjeta:hover {
+    transform: translateY(-4px);
+    border-color: color-mix(in srgb, var(--acento) 55%, transparent);
+    box-shadow: 0 18px 40px -18px color-mix(in srgb, var(--acento) 70%, transparent);
+}
+.ini-fuerta { --acento: #ffb347; }
+.ini-dbd { --acento: #e5383b; }
+.ini-ow { --acento: #f99e1a; }
+.ini-gastos { --acento: #2dd4a8; }
+.ini-odoo { --acento: #8f7bff; }
+
+/* el enlace cubre la tarjeta entera; el enlace "extra" queda por encima */
+.ini-enlace { position: absolute; inset: 0; z-index: 1; }
+.ini-imagen {
+    position: absolute; inset: 0; z-index: -1; background-size: cover; background-position: center 25%;
+    opacity: .28; transition: opacity .3s ease, transform .6s ease;
+    mask-image: linear-gradient(to left, #000 10%, transparent 85%);
+}
+.ini-tarjeta:hover .ini-imagen { opacity: .45; transform: scale(1.04); }
+
+.ini-marca {
+    align-self: flex-start; min-width: 2.6rem; height: 2.6rem; padding: 0 .6rem; border-radius: 12px;
+    display: inline-grid; place-items: center; font-weight: 800; font-size: .95rem; letter-spacing: .02em;
+    color: var(--acento); background: color-mix(in srgb, var(--acento) 15%, transparent);
+    border: 1px solid color-mix(in srgb, var(--acento) 35%, transparent);
+}
+.ini-tarjeta h2 { margin: 1.1rem 0 .3rem; font-size: 1.35rem; font-weight: 700; color: var(--ini-texto); }
+.ini-dato { margin: 0; color: var(--ini-suave); }
+.ini-dato.ini-verde { color: #4be3b4; font-weight: 600; }
+.ini-dato.ini-rojo { color: #ff7a8a; font-weight: 600; }
+.ini-extra {
+    position: relative; z-index: 2; margin: auto 0 0; padding-top: 1rem; font-size: .88rem;
+    color: var(--acento); text-decoration: none;
+}
+a.ini-extra:hover { text-decoration: underline; color: var(--acento); }
+
+.ini-semana { display: flex; gap: .35rem; margin-top: auto; padding-top: 1rem; }
+.ini-semana span {
+    width: 1.75rem; height: 1.75rem; border-radius: 8px; display: grid; place-items: center;
+    font-size: .72rem; font-weight: 700; color: var(--ini-suave); background: rgba(255, 255, 255, .06);
+}
+.ini-semana span.hecho { background: var(--acento); color: #1b1300; }
+.ini-semana span.hoy { outline: 2px solid color-mix(in srgb, var(--acento) 70%, transparent); outline-offset: 2px; }
+
+@media (prefers-reduced-motion: reduce) {
+    .ini-mancha, .ini-dos { animation: none; }
+    .ini-tarjeta, .ini-imagen { transition: none; }
+}

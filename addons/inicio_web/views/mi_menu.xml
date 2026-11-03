@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- «Personalizar menú» en el desplegable del perfil (portal.user_dropdown: lo ven internos y portal) y su página
+     /mi-menu, con el estilo normal del sitio (Bootstrap del tema). Guarda en /inicio/menu (controllers/main.py). -->
+<odoo>
+    <template id="mi_menu_enlace" inherit_id="portal.user_dropdown" name="Portada: enlace a personalizar menú">
+        <xpath expr="//*[@id='o_logout_divider']" position="before">
+            <a href="/mi-menu" role="menuitem" class="dropdown-item ps-3">
+                <i class="oi oi-fw me-1 small text-primary-emphasis" data-icon="tune"/> Personalizar menú
+            </a>
+        </xpath>
+    </template>
+
+    <template id="mi_menu" name="Portada: personalizar menú">
+        <t t-call="website.layout" additional_title="'Personalizar menú'">
+            <div id="wrap" class="ini-mi-menu">
+                <div class="container py-5" style="max-width: 640px">
+                    <h1 class="h3 mb-2">Personalizar menú</h1>
+                    <p class="text-muted mb-4">Elige qué entradas quieres ver en el menú de arriba (y en la portada).
+                        Solo cambia lo que ves tú: no quita ni da permisos.</p>
+                    <div t-if="guardado" class="alert alert-success py-2">Guardado.</div>
+                    <form t-if="entradas" action="/inicio/menu" method="post">
+                        <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
+                        <input type="hidden" name="volver" value="mi-menu"/>
+                        <div class="list-group mb-4">
+                            <label t-foreach="entradas" t-as="m" class="list-group-item d-flex align-items-center gap-3 py-3">
+                                <input class="form-check-input m-0" type="checkbox" name="visible"
+                                       t-att-value="m['url']" t-att-checked="not m['oculto'] or None"/>
+                                <span class="flex-grow-1" t-out="m['nombre']"/>
+                                <small class="text-muted" t-out="m['url']"/>
+                            </label>
+                        </div>
+                        <button type="submit" class="btn btn-primary">Guardar</button>
+                        <a href="/" class="btn btn-link">Volver al inicio</a>
+                    </form>
+                    <p t-else="" class="text-muted">No hay entradas en el menú que puedas personalizar.</p>
+                </div>
+            </div>
+        </t>
+    </template>
+</odoo>

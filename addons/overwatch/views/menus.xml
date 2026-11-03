@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- La experiencia está en el sitio web (/overwatch, con su entrada en el menú del sitio); el backend es para
+         editar el catálogo. -->
+    <record id="action_open_web" model="ir.actions.act_url">
+        <field name="name">Overwatch (web)</field>
+        <field name="url">/overwatch</field>
+        <field name="target">self</field>
+    </record>
+
+    <menuitem id="menu_root" name="Overwatch" action="action_heroes" groups="group_ow_user"
+              web_icon="overwatch,static/description/icon.png" sequence="7"/>
+    <menuitem id="menu_web" name="Abrir la web" parent="menu_root" action="action_open_web" sequence="1"/>
+    <menuitem id="menu_heroes" name="Héroes" parent="menu_root" action="action_heroes" sequence="10"/>
+    <menuitem id="menu_cosmetics" name="Cosméticos" parent="menu_root" action="action_cosmetics" sequence="20"/>
+    <menuitem id="menu_config" name="Configuración" parent="menu_root" sequence="90" groups="group_ow_manager"/>
+    <menuitem id="menu_import" name="Actualizar catálogo" parent="menu_config" action="action_import_wizard" sequence="1"/>
+    <menuitem id="menu_prefs" name="Favoritos de los usuarios" parent="menu_config" action="action_prefs" sequence="2"/>
+</odoo>

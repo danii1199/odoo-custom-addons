@@ -1,0 +1,191 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Páginas del sitio web de Odoo (cabecera, menú y pie del sitio, oscurecidos solo aquí con #wrapwrap.ow-page),
+     con una zona editable con el editor del sitio web (oe_structure_ow_top, no cambiar su id) y el contenido con la
+     estética del juego. CSS: static/src/css/overwatch.css (todo bajo .ow-app y #wrapwrap.ow-page). JS: select.js
+     (selección, favoritos, aleatorio) y hero.js (pestañas, vídeos de habilidades, galería de cosméticos).
+     Los datos van en <script id="ow-data">. Odoo 20: un t-call solo recibe los valores del render y sus atributos. -->
+<odoo>
+    <template id="page_layout" name="Overwatch: marco">
+        <t t-call="website.layout" pageName="'ow-page'" additional_title="title">
+            <div id="wrap" class="ow-wrap">
+                <div class="oe_structure" id="oe_structure_ow_top"/>
+                <div t-attf-class="ow-app #{body_class}">
+                    <t t-out="0"/>
+                </div>
+            </div>
+            <link rel="preconnect" href="https://fonts.googleapis.com"/>
+            <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:ital,wght@0,400;0,500;0,600;0,700;1,600;1,700;1,800&amp;family=Barlow:wght@400;500;600&amp;display=swap"/>
+            <link rel="stylesheet" t-attf-href="/overwatch/static/src/css/overwatch.css?v={{v}}"/>
+            <script type="application/json" id="ow-data" t-out="data"/>
+            <script t-attf-src="/overwatch/static/src/js/{{script}}?v={{v}}"/>
+        </t>
+    </template>
+
+    <!-- Iconos de rol (dibujo propio, en blanco; se colorean con currentColor) -->
+    <template id="role_icon" name="Overwatch: icono de rol">
+        <svg t-if="role == 'tank'" class="ow-role-icon" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M12 2 4 5v6c0 5 3.4 9.3 8 11 4.6-1.7 8-6 8-11V5l-8-3Z"/></svg>
+        <svg t-elif="role == 'damage'" class="ow-role-icon" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M5 3h3v13H5zM10.5 3h3v13h-3zM16 3h3v13h-3zM5 18h3v3H5zM10.5 18h3v3h-3zM16 18h3v3h-3z"/></svg>
+        <svg t-elif="role == 'support'" class="ow-role-icon" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M9 3h6v6h6v6h-6v6H9v-6H3V9h6z"/></svg>
+    </template>
+
+    <!-- ================= Selección de héroes ================= -->
+    <template id="select_page" name="Overwatch: selección de héroes">
+        <t t-call="overwatch.page_layout" title="'Selección de héroes · Overwatch'" body_class="'ow-select'" script="'select.js'">
+            <div class="ow-bg" aria-hidden="true"><div class="ow-bg-img"/><div class="ow-bg-shade"/></div>
+
+            <header class="ow-topbar">
+                <a class="ow-logo" href="/overwatch"><span class="ow-logo-mark"/>OVERWATCH</a>
+                <div class="ow-top-title">SELECCIONA UN HÉROE</div>
+                <nav class="ow-top-actions">
+                    <a t-if="is_manager" href="/odoo/action-overwatch.action_heroes" class="ow-link">Gestionar</a>
+                </nav>
+            </header>
+
+            <main class="ow-stage">
+                <section class="ow-hero-info" aria-live="polite">
+                    <div class="ow-hero-role"><span class="ow-hero-role-icon"/><span class="ow-hero-subrole"/></div>
+                    <h1 class="ow-hero-name">—</h1>
+                    <p class="ow-hero-desc"/>
+                    <div class="ow-hero-stats"/>
+                    <div class="ow-hero-buttons">
+                        <button t-if="can_fav" type="button" class="ow-btn ow-btn-fav" data-action="fav"><span class="ow-star">☆</span> <span class="ow-fav-label">Añadir a favoritos</span></button>
+                        <a class="ow-btn ow-btn-primary ow-btn-details" href="#">Ficha del héroe ›</a>
+                    </div>
+                </section>
+                <aside class="ow-abilities" aria-label="Habilidades"/>
+            </main>
+
+            <section class="ow-random" aria-label="Héroe aleatorio">
+                <div class="ow-seg" role="radiogroup" aria-label="Rol del sorteo">
+                    <button type="button" class="active" data-random-role="">Cualquiera</button>
+                    <button type="button" data-random-role="tank"><t t-call="overwatch.role_icon" role="'tank'"/>Tanque</button>
+                    <button type="button" data-random-role="damage"><t t-call="overwatch.role_icon" role="'damage'"/>Daño</button>
+                    <button type="button" data-random-role="support"><t t-call="overwatch.role_icon" role="'support'"/>Apoyo</button>
+                </div>
+                <label t-if="can_fav" class="ow-toggle"><input type="checkbox" data-random-favs="" checked=""/><span/>Solo favoritos</label>
+                <button type="button" class="ow-btn ow-btn-primary ow-btn-random" data-action="random">🎲 Aleatorio</button>
+                <span class="ow-random-msg"/>
+            </section>
+
+            <footer class="ow-roster">
+                <div t-if="can_fav" class="ow-roster-filter">
+                    <button type="button" class="active" data-show="all">Todos</button>
+                    <button type="button" data-show="favs">★ Favoritos</button>
+                </div>
+                <div class="ow-roster-groups">
+                    <div t-foreach="['tank', 'damage', 'support']" t-as="r" t-attf-class="ow-roster-group ow-role-{{r}}" t-att-data-role="r">
+                        <div class="ow-roster-head"><t t-call="overwatch.role_icon" role="r"/></div>
+                        <div class="ow-roster-tiles"/>
+                    </div>
+                </div>
+            </footer>
+        </t>
+    </template>
+
+    <!-- ================= Ficha y galería de un héroe ================= -->
+    <template id="hero_page" name="Overwatch: ficha del héroe">
+        <t t-call="overwatch.page_layout" title="'%s · Overwatch' % hero.name" body_class="'ow-gallery'" script="'hero.js'">
+            <div class="ow-bg" aria-hidden="true">
+                <div class="ow-bg-img" t-attf-style="background-image:url('#{hero.background_url or ''}')"/>
+                <div class="ow-bg-shade ow-bg-shade-strong"/>
+            </div>
+
+            <header class="ow-topbar">
+                <a class="ow-back" href="/overwatch">‹ Selección de héroes</a>
+                <div class="ow-top-title">GALERÍA DE HÉROES</div>
+                <nav class="ow-top-actions">
+                    <a t-if="is_manager" t-attf-href="/odoo/action-overwatch.action_heroes/#{hero.id}" class="ow-link">Editar</a>
+                </nav>
+            </header>
+
+            <div class="ow-gallery-head">
+                <img class="ow-gallery-portrait" t-if="portrait" t-att-src="portrait" t-att-alt="hero.name"/>
+                <div>
+                    <div class="ow-hero-role"><t t-call="overwatch.role_icon" role="hero.role"/><span><t t-out="role_name"/> · <t t-out="hero.subrole_name"/></span></div>
+                    <h1 class="ow-hero-name" t-out="hero.name"/>
+                </div>
+                <button t-if="can_fav" type="button" class="ow-btn ow-btn-fav" data-action="fav"><span class="ow-star">☆</span> <span class="ow-fav-label">Añadir a favoritos</span></button>
+            </div>
+
+            <nav class="ow-tabs" role="tablist">
+                <button type="button" class="active" data-tab="summary">Resumen</button>
+                <button type="button" data-tab="story">Historia</button>
+                <button t-foreach="types" t-as="t" type="button" t-att-data-tab="t[0]" t-att-disabled="not counts[t[0]] or None">
+                    <t t-out="t[1]"/> <small t-out="counts[t[0]]"/>
+                </button>
+            </nav>
+
+            <!-- Resumen: datos, habilidades con su vídeo y ventajas -->
+            <section class="ow-panel" data-panel="summary">
+                <div class="ow-summary">
+                    <div class="ow-summary-side">
+                        <p class="ow-hero-desc" t-out="hero.description"/>
+                        <ul class="ow-facts">
+                            <li t-if="hero.location"><span>Ubicación</span><strong t-out="hero.location"/></li>
+                            <li t-if="hero.age"><span>Edad</span><strong t-out="hero.age"/></li>
+                            <li t-if="hero.birthday"><span>Cumpleaños</span><strong t-out="hero.birthday"/></li>
+                            <li><span>Salud</span><strong t-out="hero.health"/></li>
+                            <li t-if="hero.armor"><span>Armadura</span><strong t-out="hero.armor"/></li>
+                            <li t-if="hero.shields"><span>Escudos</span><strong t-out="hero.shields"/></li>
+                        </ul>
+                        <h2 class="ow-h2">Habilidades</h2>
+                        <div class="ow-ability-list" data-kind="ability"/>
+                        <h2 class="ow-h2 ow-perks-title">Ventajas</h2>
+                        <div class="ow-perks">
+                            <div><h3>Menores</h3><div class="ow-ability-list ow-perk-list" data-kind="perk_minor"/></div>
+                            <div><h3>Mayores</h3><div class="ow-ability-list ow-perk-list" data-kind="perk_major"/></div>
+                        </div>
+                    </div>
+                    <div class="ow-ability-player">
+                        <video class="ow-ability-video" muted="" loop="" playsinline="" autoplay=""/>
+                        <div class="ow-ability-caption"><strong/><p/></div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Historia: vídeo de origen y capítulos -->
+            <section class="ow-panel" data-panel="story" hidden="">
+                <div class="ow-story">
+                    <div t-if="hero.youtube_id" class="ow-video-frame">
+                        <!-- El iframe se crea al abrir la pestaña (data-src), para no cargar YouTube si no se mira -->
+                        <iframe t-att-data-src="'https://www.youtube-nocookie.com/embed/%s?rel=0' % hero.youtube_id"
+                                title="Historia de origen" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture; fullscreen"
+                                allowfullscreen="" loading="lazy"/>
+                    </div>
+                    <p t-elif="hero.story_video_url"><a class="ow-btn" t-att-href="hero.story_video_url" target="_blank" rel="noopener">Ver la historia de origen ›</a></p>
+                    <p t-if="hero.story_summary" class="ow-story-summary" t-out="hero.story_summary"/>
+                    <article t-foreach="hero.chapter_ids" t-as="ch" class="ow-chapter">
+                        <img t-if="ch.picture_url" t-att-src="ch.picture_url" alt="" loading="lazy"/>
+                        <div>
+                            <h2 class="ow-h2" t-out="ch.title"/>
+                            <p t-out="ch.content"/>
+                        </div>
+                    </article>
+                    <p t-if="not hero.story_summary and not hero.chapter_ids" class="ow-muted">Aún no hay historia para este héroe.</p>
+                </div>
+            </section>
+
+            <!-- Galería de cosméticos (una para todos los tipos; la rellena hero.js) -->
+            <section class="ow-panel" data-panel="cosmetics" hidden="">
+                <div class="ow-locker">
+                    <div class="ow-locker-main">
+                        <div class="ow-locker-filters">
+                            <div class="ow-rarity-chips"/>
+                            <input type="search" class="ow-search" placeholder="Buscar…"/>
+                        </div>
+                        <div class="ow-locker-grid"/>
+                        <p class="ow-muted ow-locker-empty" hidden="">Nada coincide con el filtro.</p>
+                    </div>
+                    <aside class="ow-locker-preview">
+                        <div class="ow-preview-media"/>
+                        <div class="ow-preview-info">
+                            <span class="ow-preview-rarity"/>
+                            <h2 class="ow-preview-name"/>
+                            <p class="ow-preview-source"/>
+                        </div>
+                    </aside>
+                </div>
+            </section>
+        </t>
+    </template>
+</odoo>

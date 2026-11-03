@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- «Overwatch» en el menú del sitio web (editable luego desde Sitio web → Menús). Pública desde 2026-11-03: la ve
+     todo el mundo, también sin sesión. Odoo copia cada website.menu por sitio web: para cambiarle los grupos se
+     escribe en todas las copias (por manual_url). -->
+<odoo>
+    <data noupdate="1">
+        <record id="website_menu_overwatch" model="website.menu">
+            <field name="name">Overwatch</field>
+            <field name="url">/overwatch</field>
+            <field name="parent_id" ref="website.main_menu"/>
+            <field name="sequence">16</field>
+        </record>
+    </data>
+    <function model="website.menu" name="write">
+        <function model="website.menu" name="search" eval="[[('manual_url', '=', '/overwatch')]]"/>
+        <value eval="{'group_ids': [(5, 0, 0)]}"/>
+    </function>
+</odoo>

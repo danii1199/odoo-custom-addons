@@ -1,0 +1,19 @@
+id,name,model_id,group_id/id,operation,domain
+access_grupo_admin,Grupos: todos,gastos.grupo,gastos.group_gastos_manager,crud,
+access_grupo_user,Grupos: los suyos,gastos.grupo,gastos.group_gastos_user,cru,"['|', ('member_ids.user_id', '=', user.id), ('create_uid', '=', user.id)]"
+access_grupo_portal,Grupos: donde es miembro (web: portal o internos invitados),gastos.grupo,gastos.group_gastos_web,ru,"[('member_ids.user_id', '=', user.id)]"
+access_miembro_admin,Miembros: todos,gastos.miembro,gastos.group_gastos_manager,crud,
+access_miembro_user,Miembros: de sus grupos,gastos.miembro,gastos.group_gastos_user,crud,"['|', ('grupo_id.member_ids.user_id', '=', user.id), ('grupo_id.create_uid', '=', user.id)]"
+access_miembro_portal,Miembros: de sus grupos (web: portal o internos invitados),gastos.miembro,gastos.group_gastos_web,r,"[('grupo_id.member_ids.user_id', '=', user.id)]"
+access_gasto_admin,Gastos: todos,gastos.gasto,gastos.group_gastos_manager,crud,
+access_gasto_user,Gastos: de sus grupos,gastos.gasto,gastos.group_gastos_user,crud,"['|', ('grupo_id.member_ids.user_id', '=', user.id), ('grupo_id.create_uid', '=', user.id)]"
+access_gasto_portal,Gastos: de sus grupos (web: portal o internos invitados),gastos.gasto,gastos.group_gastos_web,crud,"[('grupo_id.member_ids.user_id', '=', user.id)]"
+access_linea_admin,Partes de gastos: todas,gastos.gasto.linea,gastos.group_gastos_manager,crud,
+access_linea_user,Partes de gastos: de sus grupos,gastos.gasto.linea,gastos.group_gastos_user,crud,"['|', ('grupo_id.member_ids.user_id', '=', user.id), ('grupo_id.create_uid', '=', user.id)]"
+access_linea_portal,Partes de gastos: de sus grupos (web: portal o internos invitados),gastos.gasto.linea,gastos.group_gastos_web,crud,"[('grupo_id.member_ids.user_id', '=', user.id)]"
+access_liquidacion_admin,Pagos: todos,gastos.liquidacion,gastos.group_gastos_manager,crud,
+access_liquidacion_user,Pagos: de sus grupos,gastos.liquidacion,gastos.group_gastos_user,crud,"['|', ('grupo_id.member_ids.user_id', '=', user.id), ('grupo_id.create_uid', '=', user.id)]"
+access_liquidacion_portal,Pagos: de sus grupos (web: portal o internos invitados),gastos.liquidacion,gastos.group_gastos_web,crud,"[('grupo_id.member_ids.user_id', '=', user.id)]"
+access_historial_admin,Historial de pagos: todo,gastos.liquidacion.historial,gastos.group_gastos_manager,r,
+access_historial_user,Historial de pagos: de sus grupos,gastos.liquidacion.historial,gastos.group_gastos_user,r,"['|', ('grupo_id.member_ids.user_id', '=', user.id), ('grupo_id.create_uid', '=', user.id)]"
+access_historial_portal,Historial de pagos: de sus grupos (web: portal o internos invitados),gastos.liquidacion.historial,gastos.group_gastos_web,r,"[('grupo_id.member_ids.user_id', '=', user.id)]"

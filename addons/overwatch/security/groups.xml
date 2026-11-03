@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Acceso al módulo (Ajustes → Usuarios). La web /overwatch es pública (todos la ven, también sin sesión, en
+     solo lectura). «Usuario» además marca favoritos y ve el catálogo en el backend; «Administrador» lo edita y lo
+     actualiza. Dani es administrador al instalar. -->
+<odoo>
+    <record id="module_category_overwatch" model="ir.module.category">
+        <field name="name">Overwatch</field>
+        <field name="sequence">63</field>
+    </record>
+
+    <record id="privilege_overwatch" model="res.groups.privilege">
+        <field name="name">Overwatch</field>
+        <field name="description">Selección de héroes, favoritos y galería de Overwatch.</field>
+        <field name="category_id" ref="module_category_overwatch"/>
+    </record>
+
+    <record id="group_ow_user" model="res.groups">
+        <field name="name">Usuario</field>
+        <field name="sequence">10</field>
+        <field name="privilege_id" ref="privilege_overwatch"/>
+        <field name="implied_ids" eval="[(4, ref('base.group_user'))]"/>
+    </record>
+
+    <record id="group_ow_manager" model="res.groups">
+        <field name="name">Administrador</field>
+        <field name="sequence">20</field>
+        <field name="privilege_id" ref="privilege_overwatch"/>
+        <field name="implied_ids" eval="[(4, ref('group_ow_user'))]"/>
+        <field name="user_ids" eval="[(4, ref('base.user_admin'))]"/>
+    </record>
+</odoo>

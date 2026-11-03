@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="action_abrir_web" model="ir.actions.act_url">
+        <field name="name">Gastos (web)</field>
+        <field name="url">/gastos</field>
+        <field name="target">self</field>
+    </record>
+
+    <menuitem id="menu_root" name="Gastos compartidos" action="action_grupos" groups="group_gastos_user"
+              web_icon="gastos,static/description/icon.png" sequence="6"/>
+    <menuitem id="menu_grupos" name="Grupos" parent="menu_root" action="action_grupos" sequence="1"/>
+    <menuitem id="menu_gastos" name="Gastos" parent="menu_root" action="action_gastos" sequence="2"/>
+    <menuitem id="menu_liquidaciones" name="Pagos" parent="menu_root" action="action_liquidaciones" sequence="3"/>
+    <menuitem id="menu_web" name="Abrir la web" parent="menu_root" action="action_abrir_web" sequence="9"/>
+</odoo>

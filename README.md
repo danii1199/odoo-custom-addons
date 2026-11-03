@@ -11,6 +11,9 @@ instalación y copias viven fuera del repo, en `~/servicios/` de mi PC, y viajan
 | [`addons/fuertafit`](addons/fuertafit) | `fuertafit` · Mi rutina Fuerta (web en el sitio web de Odoo, `/fuerta`) | ver su README |
 | [`addons/dbd`](addons/dbd) | `dbd` · enciclopedia de Dead by Daylight (web `/dbd`, catálogo importado de fuentes públicas) | ver su README |
 | [`addons/menu_inicio`](addons/menu_inicio) | `menu_inicio` · pantalla de inicio con iconos de apps (estilo Enterprise) | instálalo en cada base |
+| [`addons/gastos`](addons/gastos) | `gastos` · gastos compartidos tipo Splitwise (web `/gastos`, avisos por correo, webhook n8n) | ver su README |
+| [`addons/overwatch`](addons/overwatch) | `overwatch` · selección de héroes de Overwatch, favoritos, aleatorio, historia y galería (`/overwatch`) | ver su README |
+| [`addons/inicio_web`](addons/inicio_web) | `inicio_web` · portada del sitio web: reloj, saludo y una tarjeta por proyecto (`/`) | ver su CLAUDE.md |
 | [`addons/myspoty`](addons/myspoty) | `myspoty` · reproductor de Spotify | pendiente de portar a Odoo |
 
 ## Instalar (en este PC o en otro)

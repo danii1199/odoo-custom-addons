@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Acceso al backend del módulo (Ajustes → Usuarios):
+     - «Usuario»: crea grupos y ve los suyos (de los que es miembro o que ha creado).
+     - «Administrador»: ve y gestiona todos los grupos, y configura el webhook (Dani al instalar).
+     - «Gastos: web» (group_gastos_web, sin tipo de usuario: vale para portal e internos): entra en /gastos y ve el
+       menú del sitio, solo con los grupos donde es miembro (dominios en ir.access.csv). Se da solo al invitar o
+       añadir como miembro a alguien con cuenta (gastos.miembro._dar_acceso_web); quitárselo, en su usuario.
+     Sin ninguno de estos grupos no se ve nada de gastos (decisión del usuario, 2026-11-03). -->
+<odoo>
+    <record id="module_category_gastos" model="ir.module.category">
+        <field name="name">Gastos compartidos</field>
+        <field name="sequence">62</field>
+    </record>
+
+    <record id="privilege_gastos" model="res.groups.privilege">
+        <field name="name">Gastos compartidos</field>
+        <field name="description">Grupos de gastos compartidos en el backend.</field>
+        <field name="category_id" ref="module_category_gastos"/>
+    </record>
+
+    <record id="group_gastos_web" model="res.groups">
+        <field name="name">Gastos compartidos: web</field>
+        <field name="comment">Entra en /gastos y ve los grupos de gastos donde es miembro (portal o interno).</field>
+    </record>
+    <record id="group_gastos_user" model="res.groups">
+        <field name="name">Usuario</field>
+        <field name="sequence">10</field>
+        <field name="privilege_id" ref="privilege_gastos"/>
+        <field name="implied_ids" eval="[(4, ref('base.group_user')), (4, ref('group_gastos_web'))]"/>
+    </record>
+
+    <record id="group_gastos_manager" model="res.groups">
+        <field name="name">Administrador</field>
+        <field name="sequence">20</field>
+        <field name="privilege_id" ref="privilege_gastos"/>
+        <field name="implied_ids" eval="[(4, ref('group_gastos_user'))]"/>
+        <field name="user_ids" eval="[(4, ref('base.user_admin'))]"/>
+    </record>
+</odoo>

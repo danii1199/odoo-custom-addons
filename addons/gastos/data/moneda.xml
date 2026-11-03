@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Todo en euros: en cada instalación o actualización, EUR activo y todos los grupos en EUR. -->
+<odoo>
+    <function model="gastos.grupo" name="_forzar_euros"/>
+</odoo>

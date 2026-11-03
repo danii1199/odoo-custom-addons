@@ -15,6 +15,9 @@ addons/                extra-addons: cada carpeta es un módulo (nombre técnico
   fuertafit/           módulo `fuertafit` (Mi rutina Fuerta, web en el sitio web de Odoo) + scripts/, CLAUDE.md, skills
   dbd/                 módulo `dbd` (enciclopedia de Dead by Daylight, web /dbd), separado de fuertafit
   menu_inicio/         módulo `menu_inicio`: pantalla de inicio con cuadrícula de apps (estilo Enterprise, código propio)
+  gastos/              módulo `gastos`: gastos compartidos tipo Splitwise (backend + web /gastos con permiso propio, correo y webhook n8n)
+  overwatch/           módulo `overwatch`: selección de héroes al estilo del juego en el sitio web (/overwatch), favoritos, aleatorio, galería; datos/ con el catálogo exportado
+  inicio_web/          módulo `inicio_web`: portada del sitio web (reloj, saludo, tarjetas por proyecto) y menú del sitio personalizable por usuario
   myspoty/             futuro módulo `myspoty` (aún sin manifest; app antigua en app/), CLAUDE.md y skills
 ```
 
@@ -83,8 +86,13 @@ copia-seguridad.sh     copia de una base (por defecto claude-main) en ~/proyecti
 - **Acceso por módulo**: cada módulo tiene su grupo en `security/groups.xml` (`ir.module.category` +
   `res.groups.privilege` + `res.groups` que implica `base.group_user`, con `user_ids` = `base.user_admin`, que es Dani).
   `ir.access.csv`, el menú raíz (`groups=`), las rutas web privadas (`has_group`) y el menú del sitio web usan ese
-  grupo; así un usuario nuevo no ve nada hasta que se le da acceso en Ajustes → Usuarios. Odoo copia cada
+  grupo; así un usuario nuevo no ve nada hasta que se le da acceso en Ajustes → Usuarios. Excepciones (decisión del
+  usuario, 2026-11-03): las webs de `dbd` y `overwatch` son **públicas en solo lectura** (builds y favoritos piden
+  cuenta/grupo), y `gastos` tiene un grupo web sin tipo de usuario (`group_gastos_web`) que vale para portal.
+  Cada usuario puede ocultarse entradas del menú del sitio desde la portada (`inicio_web`). Odoo copia cada
   `website.menu` por sitio web: para cambiarle los grupos, escribe en todas las copias (busca por `manual_url`).
+- Un módulo que añade un campo guardado a `res.users`: `odoo module upgrade` falla la primera vez (lee los usuarios
+  con el campo nuevo antes de crear la columna); usa `odoo -d <base> -u <módulo> --stop-after-init --http-port=8098`.
 - Restricciones SQL con `models.Constraint("UNIQUE (...)", "mensaje")` (no `_sql_constraints`).
 - Campos Binary: el valor es un `BinaryValue` (`.decode()`, `.content`), no base64; al escribir, str base64 o BinaryValue.
 - Botones de cabecera en listas: `<header><button ... display="always"/></header>`. URLs de backend: `/odoo/action-<xmlid>`.

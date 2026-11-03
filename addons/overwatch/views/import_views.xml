@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_import_wizard_form" model="ir.ui.view">
+        <field name="name">ow.import.wizard.form</field>
+        <field name="model">ow.import.wizard</field>
+        <field name="arch" type="xml">
+            <form>
+                <div invisible="state != 'draft'">
+                    <p>Trae los héroes nuevos y actualiza los existentes desde
+                        <a href="https://overfast-api.tekrop.fr" target="_blank">OverFast API</a> (datos oficiales, en español)
+                        y sus cosméticos desde la <a href="https://overwatch.fandom.com" target="_blank">wiki de Overwatch</a>.
+                        No borra nada. Para la primera carga es mejor el script <code>scripts/actualizar_catalogo.py</code>.</p>
+                    <group>
+                        <field name="source" widget="radio"/>
+                        <field name="cosmetics" invisible="source == 'local'"/>
+                        <field name="reload_images" invisible="source == 'local'"/>
+                        <field name="hero_keys" placeholder="ana, soldier-76" invisible="source == 'local'"/>
+                    </group>
+                </div>
+                <field name="result" invisible="state != 'done'" nolabel="1"/>
+                <field name="state" invisible="1"/>
+                <footer>
+                    <button name="action_import" type="object" string="Actualizar" class="btn-primary" invisible="state != 'draft'"/>
+                    <button special="cancel" string="Cerrar"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_import_wizard" model="ir.actions.act_window">
+        <field name="name">Actualizar catálogo</field>
+        <field name="res_model">ow.import.wizard</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+    </record>
+</odoo>

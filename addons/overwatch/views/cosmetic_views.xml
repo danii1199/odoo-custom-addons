@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_cosmetic_list" model="ir.ui.view">
+        <field name="name">ow.cosmetic.list</field>
+        <field name="model">ow.cosmetic</field>
+        <field name="arch" type="xml">
+            <list editable="bottom">
+                <field name="hero_id"/>
+                <field name="type"/>
+                <field name="name"/>
+                <field name="rarity" decoration-info="rarity == 'rare'" decoration-warning="rarity == 'legendary'" decoration-danger="rarity == 'mythic'"/>
+                <field name="source"/>
+                <field name="media_kind" optional="hide"/>
+                <field name="media_url" widget="url" optional="hide"/>
+                <field name="image" widget="image" options="{'size': [32, 32]}"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_cosmetic_search" model="ir.ui.view">
+        <field name="name">ow.cosmetic.search</field>
+        <field name="model">ow.cosmetic</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="name"/>
+                <field name="hero_id"/>
+                <field name="source"/>
+                <filter name="sin_imagen" string="Sin imagen" domain="[('media_url', '=', False), ('image', '=', False)]"/>
+                <group>
+                    <filter name="by_hero" string="Héroe" context="{'group_by': 'hero_id'}"/>
+                    <filter name="by_type" string="Tipo" context="{'group_by': 'type'}"/>
+                    <filter name="by_rarity" string="Rareza" context="{'group_by': 'rarity'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_cosmetics" model="ir.actions.act_window">
+        <field name="name">Cosméticos</field>
+        <field name="res_model">ow.cosmetic</field>
+        <field name="view_mode">list</field>
+    </record>
+
+    <record id="view_pref_list" model="ir.ui.view">
+        <field name="name">ow.pref.list</field>
+        <field name="model">ow.pref</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="user_id"/>
+                <field name="favorite_ids" widget="many2many_tags"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="action_prefs" model="ir.actions.act_window">
+        <field name="name">Favoritos de los usuarios</field>
+        <field name="res_model">ow.pref</field>
+        <field name="view_mode">list</field>
+    </record>
+</odoo>

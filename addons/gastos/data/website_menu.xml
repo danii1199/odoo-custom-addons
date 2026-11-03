@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- «Gastos» en el menú del sitio web, solo para quien tenga el grupo «Gastos compartidos: web» (los usuarios del
+     módulo lo tienen implícito). Odoo copia cada website.menu por sitio: los grupos se escriben en todas las copias. -->
+<odoo>
+    <data noupdate="1">
+        <record id="website_menu_gastos" model="website.menu">
+            <field name="name">Gastos</field>
+            <field name="url">/gastos</field>
+            <field name="parent_id" ref="website.main_menu"/>
+            <field name="sequence">20</field>
+        </record>
+    </data>
+    <function model="website.menu" name="write">
+        <function model="website.menu" name="search" eval="[[('manual_url', '=', '/gastos')]]"/>
+        <value eval="{'group_ids': [(6, 0, [ref('group_gastos_web')])]}"/>
+    </function>
+</odoo>

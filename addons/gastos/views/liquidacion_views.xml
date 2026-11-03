@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_liquidacion_list" model="ir.ui.view">
+        <field name="name">gastos.liquidacion.list</field>
+        <field name="model">gastos.liquidacion</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="fecha"/>
+                <field name="grupo_id"/>
+                <field name="pagador_id"/>
+                <field name="receptor_id"/>
+                <field name="importe" widget="monetary"/>
+                <field name="nota"/>
+                <field name="autor_name" optional="show"/>
+                <field name="currency_id" column_invisible="1"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- Solo quien apuntó el pago puede editarlo (lo comprueba el modelo; aquí, campos de solo lectura) -->
+    <record id="view_liquidacion_form" model="ir.ui.view">
+        <field name="name">gastos.liquidacion.form</field>
+        <field name="model">gastos.liquidacion</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <div class="alert alert-info" role="alert" invisible="puedo_editar">
+                        Solo <field name="autor_name" class="fw-bold"/> puede editar este pago (lo apuntó él).
+                    </div>
+                    <group>
+                        <group>
+                            <field name="grupo_id" options="{'no_create': True}" readonly="id"/>
+                            <field name="pagador_id" options="{'no_create': True}" readonly="1" force_save="1"/>
+                            <field name="receptor_id" options="{'no_create': True}" readonly="not puedo_editar"/>
+                            <field name="importe" widget="monetary" readonly="not puedo_editar"/>
+                        </group>
+                        <group>
+                            <field name="fecha" readonly="not puedo_editar"/>
+                            <field name="nota" readonly="not puedo_editar"/>
+                            <field name="autor_name" invisible="not id"/>
+                            <field name="puedo_editar" invisible="1"/>
+                            <field name="currency_id" invisible="1"/>
+                        </group>
+                    </group>
+                    <separator string="Historial de cambios" invisible="not historial_ids"/>
+                    <field name="historial_ids" invisible="not historial_ids" readonly="1">
+                        <list>
+                            <field name="create_date" string="Cuándo"/>
+                            <field name="user_name"/>
+                            <field name="cambios"/>
+                        </list>
+                    </field>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_liquidaciones" model="ir.actions.act_window">
+        <field name="name">Pagos entre miembros</field>
+        <field name="res_model">gastos.liquidacion</field>
+        <field name="view_mode">list,form</field>
+    </record>
+</odoo>

@@ -1,0 +1,403 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Web /gastos (móvil primero) dentro del sitio web de Odoo. CSS en static/src/css/gastos.css (todo bajo .gs-app),
+     JS en static/src/js/gastos.js (tipo de reparto, «Saldar», confirmar borrados). Cualquier miembro gestiona su
+     grupo desde aquí como desde el backend (ajustes, imagen, miembros, editar gastos). Odoo 20: un t-call solo recibe los valores del
+     render y sus atributos. -->
+<odoo>
+    <template id="web_layout" name="Gastos: marco">
+        <t t-call="website.layout" pageName="'gs-page'" additional_title="'Gastos compartidos'">
+            <div id="wrap" class="gs-wrap">
+                <div class="gs-app">
+                    <t t-out="0"/>
+                </div>
+            </div>
+            <link rel="stylesheet" t-attf-href="/gastos/static/src/css/gastos.css?v={{v}}"/>
+            <script t-attf-src="/gastos/static/src/js/gastos.js?v={{v}}"/>
+        </t>
+    </template>
+
+    <!-- Imagen del grupo o, si no tiene, su inicial en un círculo -->
+    <template id="web_imagen" name="Gastos: imagen del grupo">
+        <img t-if="g.image_128" t-attf-class="gs-avatar #{cls or ''}" t-att-src="'/web/image/gastos.grupo/%s/image_128' % g.id" alt=""/>
+        <span t-else="" t-attf-class="gs-avatar gs-avatar-ini #{cls or ''}" t-out="(g.name or '?')[:1].upper()"/>
+    </template>
+
+    <template id="web_saldo" name="Gastos: saldo">
+        <span t-attf-class="gs-saldo #{'gs-pos' if saldo &gt; 0.0001 else ('gs-neg' if saldo &lt; -0.0001 else 'gs-cero')}">
+            <t t-if="saldo &gt; 0.0001">te deben <t t-out="fmt(saldo)"/></t>
+            <t t-elif="saldo &lt; -0.0001">debes <t t-out="fmt(-saldo)"/></t>
+            <t t-else="">en paz</t>
+        </span>
+    </template>
+
+    <!-- ================= Mis grupos ================= -->
+    <template id="web_grupos" name="Gastos: mis grupos">
+        <t t-call="gastos.web_layout">
+            <header class="gs-head">
+                <h1>Gastos compartidos</h1>
+                <a t-if="puede_crear" class="gs-btn gs-btn-primary" href="/gastos/nuevo-grupo">＋ Nuevo grupo</a>
+            </header>
+            <div t-if="aviso" class="gs-alert gs-alert-ok" t-out="aviso"/>
+            <div class="gs-list">
+                <a t-foreach="grupos" t-as="g" class="gs-card gs-grupo" t-att-href="'/gastos/%s' % g.id">
+                    <t t-call="gastos.web_imagen" g="g"/>
+                    <span class="gs-grupo-body">
+                        <strong t-out="g.name"/>
+                        <small><t t-out="g.gasto_count"/> gastos · <t t-out="g._fmt(g.total_gastado)"/></small>
+                    </span>
+                    <t t-call="gastos.web_saldo" saldo="g.mi_saldo" fmt="g._fmt"/>
+                </a>
+            </div>
+            <p t-if="not grupos" class="gs-empty">Aún no estás en ningún grupo. Crea uno o pide que te añadan.</p>
+            <details t-if="archivados" class="gs-section gs-archivados">
+                <summary>Grupos archivados (<t t-out="len(archivados)"/>)</summary>
+                <div class="gs-list">
+                    <a t-foreach="archivados" t-as="g" class="gs-card gs-grupo gs-grupo-archivado" t-att-href="'/gastos/%s' % g.id">
+                        <t t-call="gastos.web_imagen" g="g"/>
+                        <span class="gs-grupo-body"><strong t-out="g.name"/><small>Archivado</small></span>
+                    </a>
+                </div>
+            </details>
+            <p t-if="request.env.user.has_group('gastos.group_gastos_user')" class="gs-muted gs-backend">
+                <a href="/odoo/action-gastos.action_grupos">Abrir en el backend</a>
+            </p>
+        </t>
+    </template>
+
+    <!-- ================= Un grupo ================= -->
+    <template id="web_grupo" name="Gastos: grupo">
+        <t t-call="gastos.web_layout">
+            <a class="gs-back" href="/gastos">‹ Mis grupos</a>
+            <header class="gs-head">
+                <h1 class="gs-titulo"><t t-call="gastos.web_imagen" g="grupo" cls="'gs-avatar-lg'"/> <t t-out="grupo.name"/></h1>
+                <a class="gs-btn gs-btn-ghost" t-att-href="'/gastos/%s/ajustes' % grupo.id" title="Ajustes y miembros">⚙ Ajustes</a>
+            </header>
+            <p t-if="grupo.description" class="gs-muted" t-out="grupo.description"/>
+            <div t-if="not grupo.active" class="gs-alert gs-alert-error">Este grupo está archivado. Puedes reactivarlo en ⚙ Ajustes.</div>
+            <div t-if="aviso" class="gs-alert gs-alert-ok" t-out="aviso"/>
+            <div t-if="error" class="gs-alert gs-alert-error" t-out="error"/>
+
+            <section class="gs-card gs-resumen">
+                <div t-if="yo">
+                    <small>Tu saldo</small>
+                    <t t-call="gastos.web_saldo" saldo="yo.saldo" fmt="fmt"/>
+                </div>
+                <div>
+                    <small>Total gastado</small>
+                    <strong t-out="fmt(grupo.total_gastado)"/>
+                </div>
+            </section>
+
+            <div class="gs-actions" t-if="grupo.active">
+                <a class="gs-btn gs-btn-primary" t-att-href="'/gastos/%s/nuevo' % grupo.id">＋ Añadir gasto</a>
+                <button t-if="yo" type="button" class="gs-btn" data-gs-saldar="">⇄ Saldar</button>
+            </div>
+
+            <!-- Saldar: el JS lo abre y lo rellena desde «Quién debe a quién» -->
+            <form class="gs-card gs-saldar" method="post" t-att-action="'/gastos/%s/saldar' % grupo.id" hidden="">
+                <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
+                <h2>Apuntar un pago</h2>
+                <p class="gs-muted gs-m0">Pagas tú (cada uno apunta los pagos que hace).</p>
+                <label>A quién le pagas
+                    <select name="receptor_id" required="">
+                        <option t-foreach="grupo.member_ids - yo" t-as="m" t-att-value="m.id" t-out="m.name"/>
+                    </select>
+                </label>
+                <label>Importe <input name="importe" inputmode="decimal" required="" placeholder="0,00"/></label>
+                <label>Nota <input name="nota" placeholder="Bizum, efectivo…"/></label>
+                <div class="gs-actions">
+                    <button class="gs-btn gs-btn-primary" type="submit">Guardar pago</button>
+                    <button class="gs-btn gs-btn-ghost" type="button" data-gs-cerrar="">Cancelar</button>
+                </div>
+            </form>
+
+            <section class="gs-section">
+                <h2>Quién debe a quién</h2>
+                <div class="gs-card">
+                    <div t-foreach="deudas" t-as="d" class="gs-deuda">
+                        <span><strong t-out="d[0].name"/> → <strong t-out="d[1].name"/></span>
+                        <strong class="gs-importe" t-out="fmt(d[2])"/>
+                        <button t-if="yo and d[0] == yo" type="button" class="gs-btn gs-btn-sm" data-gs-saldar=""
+                                t-att-data-a="d[1].id" t-att-data-importe="('%.2f' % d[2]).replace('.', ',')">Saldar</button>
+                    </div>
+                    <p t-if="not deudas" class="gs-muted gs-m0">Todo saldado 🎉</p>
+                </div>
+            </section>
+
+            <section class="gs-section">
+                <h2>Saldos</h2>
+                <div class="gs-card">
+                    <div t-foreach="saldos" t-as="s" class="gs-fila">
+                        <span t-out="s[0].name"/>
+                        <span t-attf-class="gs-importe #{'gs-pos' if s[1] &gt; 0.0001 else ('gs-neg' if s[1] &lt; -0.0001 else 'gs-cero')}"
+                              t-out="fmt(s[1])"/>
+                    </div>
+                </div>
+            </section>
+
+            <section class="gs-section">
+                <h2>Movimientos</h2>
+                <div class="gs-list">
+                    <t t-foreach="movimientos" t-as="mov">
+                        <t t-set="r" t-value="mov[1]"/>
+                        <details t-if="mov[0] == 'gasto'" class="gs-card gs-mov">
+                            <summary>
+                                <span class="gs-emoji-sm" t-out="categorias[r.categoria].split(' ')[0]"/>
+                                <span class="gs-mov-body">
+                                    <strong t-out="r.name"/>
+                                    <small><t t-out="r.pagador_id.name"/> pagó · <t t-out="r.fecha.strftime('%d/%m/%Y')"/></small>
+                                </span>
+                                <span class="gs-mov-imp">
+                                    <strong t-out="fmt(r.importe)"/>
+                                    <t t-set="mia" t-value="r.linea_ids.filtered(lambda l: l.miembro_id == yo)"/>
+                                    <small t-if="yo and r.pagador_id == yo" class="gs-pos">prestaste <t t-out="fmt(r.importe - (mia.importe if mia else 0))"/></small>
+                                    <small t-elif="mia" class="gs-neg">te toca <t t-out="fmt(mia.importe)"/></small>
+                                    <small t-else="" class="gs-muted">no participas</small>
+                                </span>
+                            </summary>
+                            <ul class="gs-reparto">
+                                <li t-foreach="r.linea_ids" t-as="l"><span t-out="l.miembro_id.name"/><span t-out="fmt(l.importe)"/></li>
+                            </ul>
+                            <p t-if="r.nota" class="gs-muted" t-out="r.nota"/>
+                            <form class="gs-mov-acciones" method="post" t-att-action="'/gastos/%s/borrar/gasto/%s' % (grupo.id, r.id)">
+                                <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
+                                <a t-if="grupo.active" class="gs-btn gs-btn-sm" t-att-href="'/gastos/%s/gasto/%s' % (grupo.id, r.id)">✎ Editar</a>
+                                <button class="gs-btn gs-btn-sm gs-btn-danger" type="submit" data-gs-confirmar="">Borrar gasto</button>
+                                <small class="gs-muted">Apuntado por <t t-out="r.create_uid.sudo().name"/></small>
+                            </form>
+                        </details>
+                        <details t-else="" class="gs-card gs-mov gs-mov-pago">
+                            <summary>
+                                <span class="gs-emoji-sm">💶</span>
+                                <span class="gs-mov-body">
+                                    <strong><t t-out="r.pagador_id.name"/> pagó a <t t-out="r.receptor_id.name"/></strong>
+                                    <small><t t-out="r.fecha.strftime('%d/%m/%Y')"/><t t-if="r.nota"> · <t t-out="r.nota"/></t><t t-if="r.historial_ids"> · editado</t></small>
+                                </span>
+                                <span class="gs-mov-imp"><strong t-out="fmt(r.importe)"/></span>
+                            </summary>
+                            <t t-call="gastos.web_historial" pago="r"/>
+                            <form class="gs-mov-acciones" method="post" t-att-action="'/gastos/%s/borrar/pago/%s' % (grupo.id, r.id)">
+                                <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
+                                <a t-if="r.puedo_editar" class="gs-btn gs-btn-sm" t-att-href="'/gastos/%s/pago/%s' % (grupo.id, r.id)">✎ Editar</a>
+                                <button class="gs-btn gs-btn-sm gs-btn-danger" type="submit" data-gs-confirmar="">Borrar pago</button>
+                                <small class="gs-muted">Apuntado por <t t-out="r.autor_name"/></small>
+                            </form>
+                        </details>
+                    </t>
+                </div>
+                <p t-if="not movimientos" class="gs-empty">Todavía no hay gastos. ¡Apunta el primero!</p>
+            </section>
+        </t>
+    </template>
+
+    <!-- ================= Gasto nuevo ================= -->
+    <template id="web_nuevo" name="Gastos: gasto nuevo">
+        <t t-call="gastos.web_layout">
+            <a class="gs-back" t-att-href="'/gastos/%s' % grupo.id">‹ <t t-out="grupo.name"/></a>
+            <header class="gs-head"><h1 t-out="'Editar gasto' if gasto else 'Añadir gasto'"/></header>
+            <div t-if="error" class="gs-alert gs-alert-error" t-out="error"/>
+            <t t-set="reparto" t-value="form.get('reparto') or 'igual'"/>
+            <form class="gs-card gs-form gs-nuevo" method="post"
+                  t-att-action="'/gastos/%s/gasto/%s' % (grupo.id, gasto.id) if gasto else '/gastos/%s/nuevo' % grupo.id"
+                  data-importe-label="€">
+                <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
+                <label>Concepto <input name="name" required="" t-att-value="form.get('name')" placeholder="Cena, gasolina, súper…" t-att-autofocus="None if gasto else ''"/></label>
+                <div class="gs-2col">
+                    <label>Importe (€)
+                        <input name="importe" inputmode="decimal" required="" t-att-value="form.get('importe')" placeholder="0,00"/>
+                    </label>
+                    <label>Fecha <input type="date" name="fecha" t-att-value="form.get('fecha') or hoy"/></label>
+                </div>
+                <div class="gs-2col">
+                    <label>Pagado por
+                        <select name="pagador_id" required="">
+                            <option t-foreach="grupo.member_ids" t-as="m" t-att-value="m.id"
+                                    t-att-selected="str(m.id) == form.get('pagador_id') if form.get('pagador_id') else m == yo" t-out="m.name"/>
+                        </select>
+                    </label>
+                    <label>Categoría
+                        <select name="categoria">
+                            <option t-foreach="categorias.items()" t-as="c" t-att-value="c[0]"
+                                    t-att-selected="c[0] == (form.get('categoria') or 'otros')" t-out="c[1]"/>
+                        </select>
+                    </label>
+                </div>
+                <fieldset class="gs-reparto-tipo">
+                    <legend>¿Cómo se reparte?</legend>
+                    <label t-foreach="repartos" t-as="r" class="gs-chip">
+                        <input type="radio" name="reparto" t-att-value="r[0]" t-att-checked="r[0] == reparto"/>
+                        <span t-out="r[1]"/>
+                    </label>
+                </fieldset>
+                <div class="gs-miembros">
+                    <div t-foreach="grupo.member_ids" t-as="m" class="gs-miembro">
+                        <label class="gs-check">
+                            <input type="checkbox" t-att-name="'m_%s' % m.id" value="1"
+                                   t-att-checked="form.get('m_%s' % m.id) if form else True"/>
+                            <span t-out="m.name"/>
+                        </label>
+                        <input class="gs-valor" t-att-name="'v_%s' % m.id" inputmode="decimal"
+                               t-att-value="form.get('v_%s' % m.id)" placeholder="0"/>
+                        <span class="gs-parte"/>
+                    </div>
+                    <p class="gs-muted gs-ayuda"/>
+                </div>
+                <label>Nota <textarea name="nota" rows="2" t-out="(form.get('nota')) or ''"/></label>
+                <button class="gs-btn gs-btn-primary gs-btn-block" type="submit" t-out="'Guardar cambios' if gasto else 'Guardar gasto'"/>
+            </form>
+        </t>
+    </template>
+
+    <!-- Historial de cambios de un pago -->
+    <template id="web_historial" name="Gastos: historial de un pago">
+        <div t-if="pago.historial_ids" class="gs-historial">
+            <strong>Historial de cambios</strong>
+            <ul>
+                <li t-foreach="pago.historial_ids" t-as="h">
+                    <small class="gs-muted"><t t-out="h.create_date.strftime('%d/%m/%Y %H:%M')"/> · <t t-out="h.user_name"/></small>
+                    <span t-out="h.cambios"/>
+                </li>
+            </ul>
+        </div>
+    </template>
+
+    <!-- ================= Editar un pago ================= -->
+    <template id="web_pago" name="Gastos: editar pago">
+        <t t-call="gastos.web_layout">
+            <a class="gs-back" t-att-href="'/gastos/%s' % grupo.id">‹ <t t-out="grupo.name"/></a>
+            <header class="gs-head"><h1>Editar pago</h1></header>
+            <div t-if="error" class="gs-alert gs-alert-error" t-out="error"/>
+            <div t-if="not pago.puedo_editar" class="gs-alert gs-alert-error">
+                Solo <t t-out="pago.autor_name"/> puede editar este pago (lo apuntó él).
+            </div>
+            <form t-if="pago.puedo_editar" class="gs-card gs-form" method="post" t-att-action="'/gastos/%s/pago/%s' % (grupo.id, pago.id)">
+                <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
+                <p class="gs-muted">Paga: <strong t-out="pago.pagador_id.name"/> (tú)</p>
+                <label>A quién le pagas
+                    <select name="receptor_id" required="">
+                        <option t-foreach="(grupo.member_ids | pago.receptor_id) - pago.pagador_id" t-as="m" t-att-value="m.id"
+                                t-att-selected="str(m.id) == form.get('receptor_id') if form.get('receptor_id') else m == pago.receptor_id" t-out="m.name"/>
+                    </select>
+                </label>
+                <div class="gs-2col">
+                    <label>Importe (€) <input name="importe" inputmode="decimal" required=""
+                        t-att-value="form.get('importe') or ('%g' % pago.importe).replace('.', ',')"/></label>
+                    <label>Fecha <input type="date" name="fecha" t-att-value="form.get('fecha') or pago.fecha"/></label>
+                </div>
+                <label>Nota <input name="nota" t-att-value="form.get('nota') if form else (pago.nota or '')" placeholder="Bizum, efectivo…"/></label>
+                <button class="gs-btn gs-btn-primary gs-btn-block" type="submit">Guardar cambios</button>
+            </form>
+            <section class="gs-section gs-card">
+                <t t-call="gastos.web_historial" pago="pago"/>
+                <p t-if="not pago.historial_ids" class="gs-muted gs-m0">Este pago no se ha modificado nunca.</p>
+            </section>
+        </t>
+    </template>
+
+    <!-- ================= Grupo nuevo ================= -->
+    <template id="web_grupo_nuevo" name="Gastos: grupo nuevo">
+        <t t-call="gastos.web_layout">
+            <a class="gs-back" href="/gastos">‹ Mis grupos</a>
+            <header class="gs-head"><h1>Nuevo grupo</h1></header>
+            <div t-if="error" class="gs-alert gs-alert-error" t-out="error"/>
+            <form class="gs-card gs-form" method="post" action="/gastos/nuevo-grupo" enctype="multipart/form-data">
+                <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
+                <label>Nombre <input name="name" required="" t-att-value="form.get('name')" placeholder="Viaje a Asturias, el piso…" autofocus=""/></label>
+                <label>Descripción <textarea name="description" rows="2" t-out="(form.get('description')) or ''"/></label>
+                <label>Imagen <input type="file" name="image" accept="image/*"/></label>
+                <p class="gs-muted">Entras tú como primer miembro; después añades a los demás.</p>
+                <button class="gs-btn gs-btn-primary gs-btn-block" type="submit">Crear grupo</button>
+            </form>
+        </t>
+    </template>
+
+    <!-- ================= Ajustes y miembros ================= -->
+    <template id="web_ajustes" name="Gastos: ajustes del grupo">
+        <t t-call="gastos.web_layout">
+            <a class="gs-back" t-att-href="'/gastos/%s' % grupo.id">‹ <t t-out="grupo.name"/></a>
+            <header class="gs-head"><h1>Ajustes del grupo</h1></header>
+            <div t-if="aviso" class="gs-alert gs-alert-ok" t-out="aviso"/>
+            <div t-if="error" class="gs-alert gs-alert-error" t-out="error"/>
+
+            <form class="gs-card gs-form" method="post" t-att-action="'/gastos/%s/ajustes' % grupo.id" enctype="multipart/form-data">
+                <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
+                <div class="gs-imagen-editar">
+                    <t t-call="gastos.web_imagen" g="grupo" cls="'gs-avatar-xl'"/>
+                    <div>
+                        <label>Imagen <input type="file" name="image" accept="image/*"/></label>
+                        <label t-if="grupo.image_128" class="gs-check"><input type="checkbox" name="quitar_imagen" value="1"/> <span>Quitar la imagen</span></label>
+                    </div>
+                </div>
+                <label>Nombre <input name="name" required="" t-att-value="grupo.name"/></label>
+                <label>Descripción <textarea name="description" rows="2" t-out="(grupo.description) or ''"/></label>
+                <fieldset class="gs-avisos">
+                    <legend>Avisos por correo</legend>
+                    <label class="gs-check"><input type="checkbox" name="notificar_gastos" value="1" t-att-checked="grupo.notificar_gastos or None"/> <span>Avisar a los demás de cada gasto y pago</span></label>
+                    <label class="gs-check"><input type="checkbox" name="resumen_semanal" value="1" t-att-checked="grupo.resumen_semanal or None"/> <span>Resumen semanal (lunes) a quien tenga algo pendiente</span></label>
+                </fieldset>
+                <button class="gs-btn gs-btn-primary gs-btn-block" type="submit">Guardar</button>
+            </form>
+
+            <section class="gs-section">
+                <h2>Miembros</h2>
+                <div class="gs-list">
+                    <div t-foreach="miembros" t-as="m" t-attf-class="gs-card gs-miembro-card #{'gs-inactivo' if not m.active else ''}">
+                        <div class="gs-miembro-cab">
+                            <span class="gs-avatar gs-avatar-ini gs-avatar-sm" t-out="(m.name or '?')[:1].upper()"/>
+                            <span class="gs-grupo-body">
+                                <strong><t t-out="m.name"/><t t-if="m == yo"> (tú)</t></strong>
+                                <small>
+                                    <t t-if="m.user_id">Con cuenta</t>
+                                    <t t-elif="m.email" t-out="m.email"/>
+                                    <t t-else="">Sin correo</t>
+                                    <t t-if="not m.active"> · archivado</t>
+                                </small>
+                            </span>
+                            <t t-call="gastos.web_saldo" saldo="saldos.get(m.id, 0)" fmt="fmt"/>
+                        </div>
+                        <div class="gs-miembro-acciones" t-if="m != yo">
+                            <form t-if="not m.user_id and m.email and m.active" method="post" t-att-action="'/gastos/%s/miembros/%s/invitar' % (grupo.id, m.id)">
+                                <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
+                                <button class="gs-btn gs-btn-sm" type="submit">✉ Invitar</button>
+                            </form>
+                            <form t-if="not m.user_id" method="post" class="gs-inline" t-att-action="'/gastos/%s/miembros/%s/correo' % (grupo.id, m.id)">
+                                <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
+                                <input type="email" name="email" t-att-value="m.email" placeholder="correo@ejemplo.com" required=""/>
+                                <button class="gs-btn gs-btn-sm" type="submit">Guardar correo</button>
+                            </form>
+                            <form method="post" t-att-action="'/gastos/%s/miembros/%s/%s' % (grupo.id, m.id, 'archivar' if m.active else 'activar')">
+                                <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
+                                <button class="gs-btn gs-btn-sm" type="submit" t-out="'Archivar' if m.active else 'Reactivar'"/>
+                            </form>
+                            <form t-if="m.id not in con_movimientos" method="post" t-att-action="'/gastos/%s/miembros/%s/quitar' % (grupo.id, m.id)">
+                                <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
+                                <button class="gs-btn gs-btn-sm gs-btn-danger" type="submit" data-gs-confirmar="">Quitar</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+
+                <form class="gs-card gs-form gs-section" method="post" t-att-action="'/gastos/%s/miembros/nuevo' % grupo.id">
+                    <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
+                    <h2>Añadir miembro</h2>
+                    <div class="gs-2col">
+                        <label>Nombre <input name="name" required="" placeholder="Lucía"/></label>
+                        <label>Correo <input type="email" name="email" placeholder="lucia@ejemplo.com"/></label>
+                    </div>
+                    <label class="gs-check"><input type="checkbox" name="invitar" value="1" checked=""/> <span>Invitarle para que vea el grupo (necesita correo)</span></label>
+                    <button class="gs-btn gs-btn-primary gs-btn-block" type="submit">Añadir</button>
+                </form>
+                <p class="gs-muted">Archivar saca a alguien de los repartos nuevos pero conserva su saldo. Solo se puede quitar a
+                    quien no tiene gastos ni pagos.</p>
+            </section>
+
+            <section class="gs-section">
+                <form method="post" t-att-action="'/gastos/%s/archivar' % grupo.id">
+                    <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
+                    <button t-if="grupo.active" class="gs-btn gs-btn-danger gs-btn-block" type="submit" data-gs-confirmar="">Archivar el grupo</button>
+                    <button t-else="" class="gs-btn gs-btn-block" type="submit">Reactivar el grupo</button>
+                </form>
+            </section>
+        </t>
+    </template>
+</odoo>
