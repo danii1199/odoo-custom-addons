@@ -4,10 +4,10 @@ Módulos propios para **Odoo 20 Community**. Cada carpeta de `addons/` es un mó
 
 | Módulo | Qué hace | Depende de |
 |---|---|---|
-| [`fuertafit`](addons/fuertafit) | **Mi rutina Fuerta**: genera y planifica rutinas diarias con el catálogo de vídeos de FuertaFit (web `/fuerta`) | `website` |
+| [`rutifuerta`](addons/rutifuerta) | **Rutifuerta**: genera y planifica rutinas diarias con el catálogo de vídeos de FuertaFit (web `/rutifuerta`) | `website` |
 | [`dbd`](addons/dbd) | **Dead by Daylight**: enciclopedia de supervivientes, asesinos, perks, complementos, mapas y ofrendas, con builds y ruleta (web `/dbd`) | `website` |
 | [`overwatch`](addons/overwatch) | **Overwatch**: selección de héroes, favoritos, héroe aleatorio, historia, vídeos y galería de cosméticos (web `/overwatch`) | `website` |
-| [`gastos`](addons/gastos) | **Gastos compartidos** al estilo Splitwise: quién pagó, cómo se reparte y quién debe a quién (web `/gastos`) | `mail`, `portal`, `website` |
+| [`apachas`](addons/apachas) | **Apachas**: gastos compartidos al estilo Splitwise: quién pagó, cómo se reparte y quién debe a quién (web `/apachas`) | `mail`, `portal`, `website` |
 | [`inicio_web`](addons/inicio_web) | **Portada del sitio**: panel con reloj, saludo y acceso a cada proyecto (web `/`) | `website`, `portal` |
 | [`menu_inicio`](addons/menu_inicio) | **Menú de inicio**: cuadrícula de aplicaciones (estilo Enterprise) en vez del desplegable de apps | `web` |
 | [`myspoty`](addons/myspoty) | Reproductor de Spotify. *Todavía no es un módulo de Odoo: pendiente de portar* | — |

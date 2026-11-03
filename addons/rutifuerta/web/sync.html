@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Actualizando catálogo</title>
+<style>
+  :root { --bg: #141414; --panel: #1f1f1f; --text: #f1f1f1; --muted: #a0a0a0; --accent: #1fd18b; --danger: #ff6b6b; }
+  body { margin: 0; background: var(--bg); color: var(--text); font: 15px/1.45 system-ui, sans-serif; padding: 20px 16px; }
+  h1 { font-size: 18px; margin: 0 0 12px; } h1 span { color: var(--accent); }
+  .bar { height: 8px; background: #333; border-radius: 99px; overflow: hidden; margin: 12px 0; }
+  .bar div { height: 100%; width: 0; background: var(--accent); transition: width .2s; }
+  .muted { color: var(--muted); font-size: 13px; }
+  .ok { color: var(--accent); font-weight: 700; } .err { color: var(--danger); }
+</style>
+</head>
+<body>
+  <h1>Actualizando <span>catálogo</span></h1>
+  <div id="text">Preparando…</div>
+  <div class="bar"><div id="bar"></div></div>
+  <div class="muted" id="sub">No cierres esta ventana ni la pestaña de FuertaFit hasta que termine.</div>
+<script>
+const FUERTA = "https://webapp.fuertafit.com";
+const $ = id => document.getElementById(id);
+const setText = (t, cls = "") => { $("text").textContent = t; $("text").className = cls; };
+
+if (!window.opener) {
+  setText("Esta ventana se abre desde el marcador «Actualizar Fuerta» estando en FuertaFit.", "err");
+  $("sub").textContent = "";
+} else {
+  fetch("/rutifuerta/api/catalog/ids").then(r => r.json()).then(known =>
+    window.opener.postMessage({ type: "ready", known }, FUERTA));
+}
+
+window.addEventListener("message", async e => {
+  if (e.origin !== FUERTA || !e.data) return;
+  const m = e.data;
+  if (m.type === "status") setText(m.text);
+  if (m.type === "progress") {
+    setText(`Rutinas nuevas: ${m.done + 1} de ${m.total}`);
+    $("sub").textContent = m.title;
+    $("bar").style.width = `${Math.round((m.done + 1) / m.total * 100)}%`;
+  }
+  if (m.type === "error") { setText(m.text, "err"); $("sub").textContent = ""; }
+  if (m.type === "items") {
+    $("bar").style.width = "100%";
+    setText("Guardando…");
+    const res = await (await fetch("/rutifuerta/api/catalog/import", {
+      method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ items: m.items }),
+    })).json();
+    setText(res.added ? `¡Listo! ${res.added} rutinas nuevas.` : "¡Listo! No había rutinas nuevas.", "ok");
+    $("sub").innerHTML = `Ahora tienes ${res.total} rutinas. Recarga tu web para verlas. Ya puedes cerrar esta ventana.`;
+  }
+});
+</script>
+</body>
+</html>

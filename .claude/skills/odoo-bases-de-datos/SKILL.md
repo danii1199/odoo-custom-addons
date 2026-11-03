@@ -5,11 +5,13 @@ description: Gestionar las bases de datos del Odoo común - listar, crear, dupli
 
 # Bases de datos de Odoo
 
-Dos caminos, ambos gestionan base + filestore (adjuntos en el volumen `odoo-datos`):
+Solo por consola (gestiona base + filestore, los adjuntos del volumen `odoo-datos`):
+`sg docker -c "docker exec -i odoo odoo db <orden> ..."` (desde cualquier carpeta).
 
-- **Web**: `http://localhost:8069/web/database/manager` con la contraseña maestra (`ODOO_MASTER_PASSWORD` del `.env`;
-  dísela al usuario solo si la pide y sin copiarla en ningún archivo).
-- **CLI** (preferido para ti): `sg docker -c "docker exec -i odoo odoo db <orden> ..."` (desde cualquier carpeta).
+- El gestor web (`/web/database/manager`) está **desactivado** (`list_db = False`) porque Odoo está publicado en
+  internet: con la contraseña maestra se podría descargar o borrar una base. No lo reactives sin que lo pida.
+- El navegador solo abre la base que fija `dbfilter` (variable `ODOO_DBFILTER` del compose de despliegue). Para el
+  resto, consola; para tests en otra base: `--db-filter='^<base>$'` en la orden (ver skill `probar-modulo`).
 
 | Qué | Orden |
 |---|---|
@@ -21,7 +23,7 @@ Dos caminos, ambos gestionan base + filestore (adjuntos en el volumen `odoo-dato
 | Renombrar | `odoo db rename <vieja> <nueva>` |
 | Borrar | `odoo db drop <bd>` |
 
-- Copias en la carpeta de copias del usuario (fuera del repo; ruta en tu memoria) con fecha en el nombre: `fuertafit-2026-10-05.zip`.
+- Copias en la carpeta de copias del usuario (fuera del repo; ruta en tu memoria) con fecha en el nombre: `rutifuerta-2026-10-05.zip`.
   Borra luego el `.zip` de `/tmp` del contenedor.
 - El rol `odoo` tiene `CREATEDB`: es el dueño de todas las bases de Odoo. El superusuario de Postgres es el de
   `$POSTGRES_USER` (`docker exec postgres sh -c 'psql -U "$POSTGRES_USER" -d <bd>'`), útil para consultas de solo lectura.

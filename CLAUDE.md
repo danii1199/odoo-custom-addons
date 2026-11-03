@@ -13,10 +13,10 @@ Dockerfile             FROM odoo:20 + dependencias Python de los módulos (el c�
 odoo-entrypoint.sh     genera /etc/odoo/odoo.conf: odoo.conf + addons_path + admin_passwd, y lanza el entrypoint oficial
 odoo.conf              configuración de Odoo sin secretos (montada como /etc/odoo/odoo.base.conf)
 addons/                extra-addons: cada carpeta es un módulo (nombre técnico = nombre de la carpeta)
-  fuertafit/           módulo `fuertafit` (Mi rutina Fuerta, web en el sitio web de Odoo) + scripts/, CLAUDE.md, skills
-  dbd/                 módulo `dbd` (enciclopedia de Dead by Daylight, web /dbd), separado de fuertafit
+  rutifuerta/          módulo `rutifuerta` (Rutifuerta, web en el sitio web de Odoo) + scripts/, CLAUDE.md, skills
+  dbd/                 módulo `dbd` (enciclopedia de Dead by Daylight, web /dbd), separado de rutifuerta
   menu_inicio/         módulo `menu_inicio`: pantalla de inicio con cuadrícula de apps (estilo Enterprise, código propio)
-  gastos/              módulo `gastos`: gastos compartidos tipo Splitwise (backend + web /gastos con permiso propio, correo y webhook n8n)
+  apachas/             módulo `apachas`: gastos compartidos tipo Splitwise (backend + web /apachas con permiso propio, correo y webhook n8n)
   overwatch/           módulo `overwatch`: selección de héroes al estilo del juego en el sitio web (/overwatch), favoritos, aleatorio, galería; datos/ con el catálogo exportado
   inicio_web/          módulo `inicio_web`: portada del sitio web (reloj, saludo, tarjetas por proyecto) y menú del sitio personalizable por usuario
   myspoty/             futuro módulo `myspoty` (aún sin manifest; app antigua en app/), CLAUDE.md y skills
@@ -42,15 +42,17 @@ addons/                extra-addons: cada carpeta es un módulo (nombre técnico
 
 ## Bases de datos (skill `odoo-bases-de-datos`)
 
-- Multi-base: `list_db = True`, selector en `/web/login` y gestor en `/web/database/manager`, protegido por la
-  contraseña maestra (**no la muestres**). Odoo solo lista las bases cuyo dueño es `odoo`.
+- Odoo está publicado en internet: **sin selector ni gestor web de bases** (`list_db = False`) y el navegador solo
+  abre la base de `dbfilter` (variable `ODOO_DBFILTER` del despliegue, que añade `odoo-entrypoint.sh`). Las bases se
+  gestionan por consola. Registro solo por invitación y verificación en dos pasos obligatoria para internos: no lo
+  relajes sin que el usuario lo pida.
 - Por consola: `odoo db {init,duplicate,dump,load,rename,drop}` y `odoo module {install,upgrade,uninstall,list}`
   dentro del contenedor (`docker exec -i odoo odoo ...`). Gestionan también el filestore.
 - Hay una **base real** (datos del usuario) y una **base de pruebas**; sus nombres, en la memoria de Claude
   (si no los sabes, pregunta antes de tocar nada).
 - En Odoo 20 el servicio `db` de `/jsonrpc` ya no existe: usa el gestor web o el CLI.
 
-## Odoo 20: convenciones de los módulos (ver `addons/fuertafit` como ejemplo)
+## Odoo 20: convenciones de los módulos (ver `addons/rutifuerta` como ejemplo)
 
 - Manifest: `version` `20.0.x.y.z`, `author` `danii1199`, `license` `LGPL-3`, `depends` mínimo.
 - Permisos en `security/ir.access.csv` (modelo `ir.access`, nuevo en 20): columnas
@@ -63,7 +65,7 @@ addons/                extra-addons: cada carpeta es un módulo (nombre técnico
   `ir.access.csv`, el menú raíz (`groups=`), las rutas web privadas (`has_group`) y el menú del sitio web usan ese
   grupo; así un usuario nuevo no ve nada hasta que se le da acceso en Ajustes → Usuarios. Excepciones (decisión del
   usuario, 2026-11-03): las webs de `dbd` y `overwatch` son **públicas en solo lectura** (builds y favoritos piden
-  cuenta/grupo), y `gastos` tiene un grupo web sin tipo de usuario (`group_gastos_web`) que vale para portal.
+  cuenta/grupo), y `apachas` tiene un grupo web sin tipo de usuario (`group_gastos_web`) que vale para portal.
   Cada usuario puede ocultarse entradas del menú del sitio desde la portada (`inicio_web`). Odoo copia cada
   `website.menu` por sitio web: para cambiarle los grupos, escribe en todas las copias (busca por `manual_url`).
 - Un módulo que añade un campo guardado a `res.users`: `odoo module upgrade` falla la primera vez (lee los usuarios

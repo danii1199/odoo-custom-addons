@@ -1,0 +1,187 @@
+/* Estilos de Rutifuerta */
+.fuerta-app {
+  --bg: #141414; --panel: #1f1f1f; --panel2: #292929; --text: #f1f1f1; --muted: #a0a0a0;
+  --accent: #1fd18b; --accent-ink: #0b2a1d; --accent-soft: #1fd18b26; --line: #333; --danger: #ff6b6b;
+}
+.fuerta-app * { box-sizing: border-box; }
+/* La app es una caja oscura dentro de la página del sitio web de Odoo (que usa Bootstrap). */
+.fuerta-app { margin: 0; background: var(--bg); color: var(--text); font: 15px/1.45 system-ui, sans-serif;
+              border-radius: 16px; overflow: hidden; }
+.fuerta-app a { color: var(--accent); }
+.fuerta-app h1, .fuerta-app h2 { color: inherit; font-family: inherit; font-weight: 700; }
+.fuerta-app p { margin: 0 0 8px; }
+
+/* ---- cabecera y menú ---- */
+.fuerta-app .fa-head { background: #141414; border-bottom: 1px solid var(--line); }
+.fuerta-app .bar { max-width: 960px; margin: 0 auto; padding: 10px 16px; display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
+.fuerta-app .bar h1 { margin: 0; font-size: 20px; white-space: nowrap; } .fuerta-app .bar h1 span { color: var(--accent); }
+.fuerta-app .defmin { margin-left: auto; color: var(--muted); font-size: 13px; white-space: nowrap; }
+.fuerta-app .who { color: var(--muted); font-size: 13px; white-space: nowrap; } .fuerta-app .who a { color: var(--muted); text-decoration: none; }
+.fuerta-app .who a:hover { color: var(--text); }
+.fuerta-app .defmin input { width: 64px; padding: 4px 6px; margin: 0 2px; }
+.fuerta-app .daymin input { width: 64px; padding: 5px 6px; }
+.fuerta-app .fa-nav { display: flex; gap: 4px; overflow-x: auto; }
+.fuerta-app .fa-nav a { color: var(--muted); text-decoration: none; padding: 7px 12px; border-radius: 999px; white-space: nowrap; font-weight: 600; }
+.fuerta-app .fa-nav a.on { background: var(--accent-soft); color: var(--accent); }
+.fuerta-app .fa-main { max-width: 960px; margin: 0 auto; padding: 16px 16px 48px; display: grid; gap: 16px; }
+.fuerta-app .view { display: grid; gap: 16px; } .fuerta-app .view[hidden] { display: none; }
+
+.fuerta-app section { background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 16px; }
+.fuerta-app h2 { margin: 0 0 12px; font-size: 17px; }
+.fuerta-app .muted, .fuerta-app .m { color: var(--muted); font-size: 13px; }
+.fuerta-app .fa-row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-bottom: 14px; }
+.fuerta-app .fa-row > label.title { width: 100%; color: var(--muted); font-size: 12px; text-transform: uppercase; letter-spacing: .05em; }
+.fuerta-app .chip { border: 1px solid var(--line); background: var(--panel2); color: var(--text); border-radius: 999px;
+        padding: 6px 12px; cursor: pointer; font: inherit; user-select: none; }
+.fuerta-app .chip.on { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); font-weight: 600; }
+.fuerta-app .chip small { opacity: .7; }
+.fuerta-app input, .fuerta-app select, .fuerta-app textarea { background: var(--panel2); color: var(--text); border: 1px solid var(--line);
+                          border-radius: 8px; padding: 7px 9px; font: inherit; }
+.fuerta-app input[type=number] { width: 80px; }
+.fuerta-app textarea { width: 100%; resize: vertical; }
+.fuerta-app button { font: inherit; cursor: pointer; }
+.fuerta-app button.main { background: var(--accent); color: var(--accent-ink); border: 0; border-radius: 10px;
+              padding: 10px 18px; font-weight: 700; }
+.fuerta-app button.ghost { background: transparent; color: var(--text); border: 1px solid var(--line); border-radius: 8px; padding: 6px 10px; }
+.fuerta-app button.danger { color: var(--danger); }
+.fuerta-app button:disabled { opacity: .5; cursor: default; }
+.fuerta-app .actions { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+.fuerta-app .spread { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px; margin-bottom: 12px; }
+.fuerta-app .spread h2 { margin: 0; }
+.fuerta-app .badge { font-size: 12px; border-radius: 6px; padding: 2px 8px; background: var(--accent-soft); color: var(--accent); font-weight: 600; }
+
+/* ---- tarjeta de rutina ---- */
+.fuerta-app .blocks { display: grid; gap: 10px; }
+.fuerta-app .block { display: grid; grid-template-columns: 140px 1fr; gap: 12px; background: var(--panel2); border-radius: 12px; overflow: hidden; }
+.fuerta-app .block img { width: 140px; height: 100%; min-height: 100px; object-fit: cover; background: #000; }
+.fuerta-app .block .info { padding: 10px 12px 10px 0; display: grid; gap: 4px; align-content: start; }
+.fuerta-app .block .head { display: flex; justify-content: space-between; align-items: flex-start; gap: 8px; }
+.fuerta-app .block .t { font-weight: 700; }
+.fuerta-app .block a.open { font-weight: 600; text-decoration: none; }
+.fuerta-app .block.done { opacity: .6; } .fuerta-app .block.done .t { text-decoration: line-through; }
+.fuerta-app .tag { display: inline-block; font-size: 12px; background: #383838; border-radius: 6px; padding: 1px 7px; margin: 0 4px 2px 0; }
+.fuerta-app .check { flex: none; width: 34px; height: 34px; border-radius: 50%; border: 2px solid #555;
+         background: transparent; color: transparent; font: 700 18px system-ui; }
+.fuerta-app .check:hover { border-color: var(--accent); color: var(--accent); }
+.fuerta-app .check.on { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
+.fuerta-app .addform { display: flex; gap: 6px; align-items: center; }
+.fuerta-app .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 10px; }
+.fuerta-app .grid .block { grid-template-columns: 1fr; }
+.fuerta-app .grid .block img { width: 100%; height: 140px; min-height: 0; }
+.fuerta-app .grid .block .info { padding: 0 12px 12px; }
+
+/* ---- calendario ---- */
+.fuerta-app .cal { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; }
+.fuerta-app .cal .dow { text-align: center; color: var(--muted); font-size: 12px; padding: 4px 0; }
+.fuerta-app .day { min-height: 74px; min-width: 0; overflow: hidden; background: var(--panel2); border: 2px solid transparent; border-radius: 10px; padding: 6px;
+       cursor: pointer; display: grid; align-content: start; gap: 2px; text-align: left; color: var(--text); }
+.fuerta-app .day.out { opacity: .35; }
+.fuerta-app .day.today { border-color: var(--accent); }
+.fuerta-app .day.sel { background: #353535; outline: 2px solid #777; }
+.fuerta-app .day .n { font-weight: 700; font-size: 13px; }
+.fuerta-app .day .i { font-size: 11px; color: var(--muted); line-height: 1.3; }
+.fuerta-app .day.full { background: #1fd18b33; } .fuerta-app .day.partial { background: #1fd18b1a; }
+.fuerta-app .day[draggable="true"] { cursor: grab; }
+.fuerta-app .day .i .ok { color: var(--accent); }
+.fuerta-app .rl { list-style: none; margin: 3px 0 0; padding: 0; display: grid; gap: 1px; min-width: 0; }
+.fuerta-app .rl li { font-size: 11px; line-height: 1.3; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+         color: #cfcfcf; display: flex; align-items: center; gap: 4px; min-width: 0; }
+.fuerta-app .rl li.ok { color: var(--accent); }
+.fuerta-app .dot.legend { display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: #888; }
+.fuerta-app .rl .dot { flex: none; width: 6px; height: 6px; border-radius: 50%; background: #888; }
+.fuerta-app .g-pierna .dot { background: #f08a5d; } .fuerta-app .g-torso .dot { background: #5da9f0; } .fuerta-app .g-core .dot { background: #f0d25d; }
+.fuerta-app .g-full .dot { background: #b58df0; } .fuerta-app .g-cardio .dot { background: #f05d7a; } .fuerta-app .g-mente .dot { background: #5df0c8; }
+.fuerta-app .g-calen .dot { background: #9a9a9a; }
+.fuerta-app .day.dragging { opacity: .4; }
+.fuerta-app .day.drop { outline: 2px dashed var(--accent); outline-offset: -2px; background: #1fd18b22; }
+.fuerta-app .day .i.ok { color: var(--accent); font-weight: 700; }
+.fuerta-app .day .i.st { color: #f0b54a; }
+.fuerta-app .day.away { background: repeating-linear-gradient(135deg, #2b2b2b, #2b2b2b 6px, #262626 6px, #262626 12px); }
+.fuerta-app .day.skipped .i:not(.st) { text-decoration: line-through; }
+.fuerta-app .banner { background: #f0b54a1f; border: 1px solid #f0b54a55; color: #f3c46b; border-radius: 10px;
+          padding: 8px 12px; display: flex; justify-content: space-between; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 12px; }
+.fuerta-app .banner button { color: #f3c46b; border-color: #f0b54a55; }
+.fuerta-app .dayactions { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-bottom: 12px; }
+.fuerta-app .awaylist { display: grid; gap: 6px; margin-top: 12px; }
+.fuerta-app .awaylist div.editing { flex-wrap: wrap; }
+.fuerta-app .awaylist div { display: flex; justify-content: space-between; align-items: center; gap: 8px;
+                background: var(--panel2); border-radius: 8px; padding: 6px 10px; }
+
+/* ---- plan semanal ---- */
+.fuerta-app .weekgrid { display: grid; gap: 8px; }
+.fuerta-app .wday { display: grid; grid-template-columns: 90px 1fr; gap: 8px; align-items: center;
+        background: var(--panel2); border-radius: 10px; padding: 8px 10px; }
+.fuerta-app .wday .dn { font-weight: 700; }
+.fuerta-app .wday .dn small { display: block; color: var(--muted); font-weight: 400; }
+.fuerta-app .wday .chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.fuerta-app .wday .chip { padding: 4px 10px; font-size: 13px; }
+.fuerta-app .templates { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 10px; }
+.fuerta-app .tpl { text-align: left; background: var(--panel2); color: var(--text); border: 2px solid transparent;
+       border-radius: 12px; padding: 12px 14px; display: grid; gap: 4px; }
+.fuerta-app .tpl strong { font-size: 15px; }
+.fuerta-app .tpl.on { border-color: var(--accent); }
+.fuerta-app .tpl.on strong::after { content: " ✓"; color: var(--accent); }
+.fuerta-app .tpl { position: relative; cursor: pointer; }
+.fuerta-app .tpl strong { padding-right: 24px; }
+.fuerta-app .tpl .tpl-del { position: absolute; top: 6px; right: 6px; background: transparent; color: var(--muted);
+       border: 0; padding: 2px 6px; font-size: 14px; cursor: pointer; }
+.fuerta-app .tpl .tpl-del:hover { color: var(--text); }
+.fuerta-app .tpl.rec { background: linear-gradient(135deg, var(--panel2), color-mix(in srgb, var(--accent) 14%, var(--panel2))); }
+.fuerta-app .tpl-badge { justify-self: start; background: var(--accent); color: var(--accent-ink); border-radius: 999px;
+       padding: 1px 8px; font-size: 11px; font-weight: 700; }
+.fuerta-app .tpl small.muted { font-size: 12px; line-height: 1.35; }
+.fuerta-app .wk-save { margin-top: 12px; }
+.fuerta-app .wk-save input { flex: 1 1 220px; min-width: 0; }
+.fuerta-app .wday .chip.rest.on { background: #555; border-color: #555; color: var(--text); }
+@media (max-width: 560px) { .fuerta-app .wday { grid-template-columns: 1fr; } }
+
+/* ---- actualizar ---- */
+.fuerta-app .steps { padding-left: 20px; display: grid; gap: 12px; margin: 0 0 12px; }
+.fuerta-app .bookmarklet { display: inline-block; margin: 8px 0 4px; padding: 8px 14px; border-radius: 10px; background: var(--accent);
+               color: var(--accent-ink); font-weight: 700; text-decoration: none; cursor: grab; }
+.fuerta-app kbd { background: var(--panel2); border: 1px solid var(--line); border-radius: 4px; padding: 0 5px; font-size: 12px; }
+
+/* ---- chat ---- */
+.fuerta-app .chat { display: grid; gap: 10px; max-height: 60vh; overflow-y: auto; padding-right: 4px; }
+.fuerta-app .msg { padding: 10px 14px; border-radius: 14px; max-width: 85%; white-space: normal; }
+.fuerta-app .msg.user { background: var(--accent); color: var(--accent-ink); justify-self: end; border-bottom-right-radius: 4px; }
+.fuerta-app .msg.bot { background: var(--panel2); justify-self: start; border-bottom-left-radius: 4px; }
+.fuerta-app .msg.err { border: 1px solid var(--danger); }
+.fuerta-app .msg ul { margin: 4px 0; padding-left: 18px; }
+.fuerta-app .composer { display: flex; gap: 8px; margin-top: 12px; align-items: flex-end; }
+.fuerta-app .composer textarea { min-height: 44px; }
+.fuerta-app .typing { color: var(--muted); font-style: italic; }
+
+@media (max-width: 560px) {
+  .fuerta-app .block { grid-template-columns: 96px 1fr; } .fuerta-app .block img { width: 96px; }
+  .fuerta-app .grid .block { grid-template-columns: 1fr; } .fuerta-app .grid .block img { width: 100%; }
+  .fuerta-app .day { min-height: 56px; padding: 4px; } .fuerta-app .day .i { font-size: 10px; }
+  .fuerta-app .rl { display: flex; flex-wrap: wrap; gap: 3px; }
+  .fuerta-app .rl li { font-size: 0; gap: 0; } .fuerta-app .rl .dot { width: 7px; height: 7px; }
+  .fuerta-app .msg { max-width: 95%; }
+}
+
+/* ---- Plan sigilo (rutina propia con temporizador mudo) ---- */
+.fuerta-app .sg-teaser { border-color: var(--accent); }
+.fuerta-app .sg-rules { margin: 0 0 12px; padding-left: 20px; color: var(--muted); font-size: 13px; }
+.fuerta-app .sg-timer { text-align: center; display: grid; gap: 6px; justify-items: center; transition: background .3s, border-color .3s; }
+.fuerta-app .sg-name { font-size: 22px; font-weight: 700; }
+.fuerta-app .sg-clock { font-size: 72px; font-weight: 800; line-height: 1; font-variant-numeric: tabular-nums; color: var(--accent); }
+.fuerta-app .sg-tip { max-width: 560px; }
+.fuerta-app .sg-progress { width: 100%; max-width: 560px; height: 6px; background: var(--panel2); border-radius: 3px; overflow: hidden; margin-top: 6px; }
+.fuerta-app .sg-progress div { height: 100%; background: var(--accent); transition: width .25s linear; }
+.fuerta-app .sg-ctrl { justify-content: center; margin-top: 6px; }
+.fuerta-app .sg-timer.rest { background: var(--panel2); }
+.fuerta-app .sg-timer.rest .sg-clock { color: var(--muted); }
+.fuerta-app .sg-timer.soon { border-color: var(--accent); animation: sg-blink .5s step-end infinite alternate; }
+.fuerta-app .sg-timer.end { border-color: var(--accent); background: var(--accent-soft); }
+@keyframes sg-blink { 50% { background: var(--accent-soft); } }
+.fuerta-app .sg-block h3 { font-size: 14px; margin: 14px 0 6px; color: var(--accent); text-transform: uppercase; letter-spacing: .04em; }
+.fuerta-app .sg-block h3 small { color: var(--muted); text-transform: none; letter-spacing: 0; font-weight: 400; }
+.fuerta-app .sg-block:first-child h3 { margin-top: 0; }
+.fuerta-app .sg-item { padding: 8px 10px; border-radius: 10px; cursor: pointer; border: 1px solid transparent; }
+.fuerta-app .sg-item:hover { background: var(--panel2); }
+.fuerta-app .sg-item.on { border-color: var(--accent); background: var(--accent-soft); }
+.fuerta-app .sg-it { display: flex; justify-content: space-between; gap: 8px; }
+.fuerta-app .sg-it span { color: var(--muted); font-size: 13px; white-space: nowrap; }
+@media (max-width: 600px) { .fuerta-app .sg-clock { font-size: 56px; } }

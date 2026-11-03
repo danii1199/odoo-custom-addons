@@ -5,7 +5,7 @@ description: Crear un proyecto o módulo nuevo de Odoo 20 en el repo (carpeta, m
 
 # Nuevo proyecto / módulo
 
-## Estructura (igual que `addons/fuertafit/`): la carpeta ES el módulo
+## Estructura (igual que `addons/rutifuerta/`): la carpeta ES el módulo
 
 ```
 addons/<modulo>/          nombre técnico = nombre de la carpeta (snake_case)
@@ -23,7 +23,7 @@ addons/<modulo>/          nombre técnico = nombre de la carpeta (snake_case)
    pero adapta a las convenciones de `CLAUDE.md` (Odoo 20: `ir.access`, `models.Constraint`, `<list>`).
 2. Acceso: `security/groups.xml` con su categoría, privilegio y grupo «Usuario» (y «Administrador» si hace falta),
    `user_ids` = `base.user_admin` (Dani). Cárgalo antes de `ir.access.csv` y úsalo en permisos, menú raíz y web
-   (ver `addons/fuertafit/security/groups.xml`). Nada visible para `base.group_user` en general.
+   (ver `addons/rutifuerta/security/groups.xml`). Nada visible para `base.group_user` en general.
 3. Manifest: `"version": "20.0.1.0.0"`, `"author": "danii1199"`, `"license": "LGPL-3"`, `"depends": ["base", ...]`.
 4. No hay que tocar el compose: `addons/` entero está montado. Tras crear el módulo,
    `sg docker -c "docker restart odoo"` para que Odoo lo vea (`odoo module list` o Aplicaciones → Actualizar lista).
@@ -34,7 +34,7 @@ addons/<modulo>/          nombre técnico = nombre de la carpeta (snake_case)
 7. Escribe `addons/<modulo>/CLAUDE.md` y sus skills (mínimo `probar-cambios`), y añade el proyecto a la estructura del
    `CLAUDE.md` raíz y al `README.md`.
 
-## Portar una app existente (como se hizo con fuertafit)
+## Portar una app existente (como se hizo con rutifuerta)
 
 - Tablas → modelos (`fields.Json` para datos sin esquema fijo); un `user_id` por registro en lo que sea de cada usuario
   y dominio `[('user_id', '=', user.id)]` en `ir.access.csv`.

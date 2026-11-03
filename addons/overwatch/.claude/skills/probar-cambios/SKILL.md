@@ -11,7 +11,7 @@ Lo general está en la skill raíz `probar-modulo`. Desde la raíz del repo y co
 
 ```bash
 docker exec -i odoo odoo db init --language es_ES --country ES ow_tests
-docker exec -i odoo odoo -d ow_tests -i overwatch --test-enable --test-tags /overwatch --stop-after-init --http-port=8099 > <scratchpad>/log 2>&1
+docker exec -i odoo odoo -d ow_tests --db-filter='^ow_tests$' -i overwatch --test-enable --test-tags /overwatch --stop-after-init --http-port=8099 > <scratchpad>/log 2>&1
 grep -E "ERROR|FAIL|of [0-9]+ tests" <scratchpad>/log
 docker exec -i odoo odoo db drop ow_tests
 ```

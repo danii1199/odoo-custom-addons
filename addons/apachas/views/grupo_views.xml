@@ -1,0 +1,159 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_grupo_kanban" model="ir.ui.view">
+        <field name="name">gastos.grupo.kanban</field>
+        <field name="model">gastos.grupo</field>
+        <field name="arch" type="xml">
+            <kanban>
+                <field name="currency_id"/>
+                <field name="id"/>
+                <templates>
+                    <t t-name="card">
+                        <div class="d-flex align-items-center gap-2">
+                            <field name="image_128" widget="image" options="{'img_class': 'rounded-circle object-fit-cover'}" style="width:48px;height:48px"/>
+                            <div class="flex-grow-1">
+                                <field name="name" class="fw-bold fs-5"/>
+                                <div class="text-muted small"><field name="gasto_count"/> gastos · <field name="total_gastado" widget="monetary"/></div>
+                            </div>
+                        </div>
+                        <div class="mt-2">
+                            Mi saldo: <field name="mi_saldo" widget="monetary"
+                                decoration-success="mi_saldo &gt; 0" decoration-danger="mi_saldo &lt; 0" class="fw-bold"/>
+                        </div>
+                    </t>
+                </templates>
+            </kanban>
+        </field>
+    </record>
+
+    <record id="view_grupo_list" model="ir.ui.view">
+        <field name="name">gastos.grupo.list</field>
+        <field name="model">gastos.grupo</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="image_128" widget="image" options="{'size': [32, 32]}" string=""/>
+                <field name="name"/>
+                <field name="gasto_count"/>
+                <field name="total_gastado" widget="monetary"/>
+                <field name="mi_saldo" widget="monetary" decoration-success="mi_saldo &gt; 0" decoration-danger="mi_saldo &lt; 0"/>
+                <field name="currency_id" column_invisible="1"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_grupo_form" model="ir.ui.view">
+        <field name="name">gastos.grupo.form</field>
+        <field name="model">gastos.grupo</field>
+        <field name="arch" type="xml">
+            <form>
+                <header>
+                    <button name="action_recordar_pagos" type="object" string="Recordar pagos" class="btn-primary"
+                            invisible="not id" help="Correo ahora mismo a quien debe dinero"/>
+                    <button name="action_abrir_web" type="object" string="Abrir en la web" invisible="not id"/>
+                    <button name="action_exportar_splitwise" type="object" string="Exportar a Splitwise" invisible="not id"
+                            help="Descarga el grupo en el CSV de Splitwise"/>
+                    <button name="action_importar_splitwise" type="object" string="Importar de Splitwise" invisible="not id"
+                            help="Trae los gastos y pagos de un CSV exportado de Splitwise"/>
+                </header>
+                <sheet>
+                    <widget name="web_ribbon" title="Archivado" bg_color="text-bg-danger" invisible="active"/>
+                    <field name="image" widget="image" class="oe_avatar" options="{'preview_image': 'image_128'}"/>
+                    <div class="oe_title">
+                        <h1><field name="name" placeholder="p. ej. Viaje a Asturias"/></h1>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="description" placeholder="De qué va el grupo…"/>
+                            <field name="currency_id" invisible="1"/>
+                            <field name="active" invisible="1"/>
+                        </group>
+                        <group>
+                            <field name="total_gastado" widget="monetary"/>
+                            <field name="mi_saldo" widget="monetary"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Miembros" name="miembros">
+                            <field name="member_ids" context="{'active_test': False}">
+                                <list editable="bottom" decoration-muted="not active">
+                                    <field name="partner_id" context="{'default_type': 'contact'}"/>
+                                    <field name="email" placeholder="Para avisos e invitación"/>
+                                    <field name="user_id" readonly="1" optional="show"/>
+                                    <field name="saldo" widget="monetary" decoration-success="saldo &gt; 0" decoration-danger="saldo &lt; 0"/>
+                                    <field name="currency_id" column_invisible="1"/>
+                                    <field name="active" widget="boolean_toggle" string="Activo"/>
+                                    <button name="action_invitar" type="object" string="Invitar" icon="fa-envelope"
+                                            invisible="user_id or not id" title="Darle acceso a /apachas (cuenta de portal)"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Quién debe a quién" name="deudas">
+                            <field name="deudas_html" nolabel="1"/>
+                        </page>
+                        <page string="Gastos" name="gastos">
+                            <field name="gasto_ids" context="{'default_grupo_id': id}">
+                                <list>
+                                    <field name="fecha"/>
+                                    <field name="categoria"/>
+                                    <field name="name"/>
+                                    <field name="pagador_id"/>
+                                    <field name="importe" widget="monetary" sum="Total"/>
+                                    <field name="currency_id" column_invisible="1"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Pagos" name="pagos">
+                            <field name="liquidacion_ids" context="{'default_grupo_id': id}">
+                                <list>
+                                    <field name="fecha"/>
+                                    <field name="grupo_id" column_invisible="1"/>
+                                    <field name="pagador_id"/>
+                                    <field name="receptor_id"/>
+                                    <field name="importe" widget="monetary"/>
+                                    <field name="nota"/>
+                                    <field name="autor_name" optional="show"/>
+                                    <field name="currency_id" column_invisible="1"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Avisos" name="avisos">
+                            <group>
+                                <field name="notificar_gastos"/>
+                                <field name="resumen_semanal"/>
+                                <field name="webhook_url" placeholder="https://mi-n8n/webhook/apachas" widget="url"/>
+                            </group>
+                            <div class="text-muted">
+                                Los correos salen por el servidor de correo saliente de Odoo (Ajustes → Técnico →
+                                Servidores de correo saliente). Solo reciben aviso los miembros con correo.
+                            </div>
+                        </page>
+                    </notebook>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_grupo_search" model="ir.ui.view">
+        <field name="name">gastos.grupo.search</field>
+        <field name="model">gastos.grupo</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="name"/>
+                <field name="member_ids" string="Miembro"/>
+                <filter name="mios" string="Soy miembro" domain="[('member_ids.user_id', '=', uid)]"/>
+                <filter name="archivados" string="Archivados" domain="[('active', '=', False)]"/>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_grupos" model="ir.actions.act_window">
+        <field name="name">Grupos</field>
+        <field name="res_model">gastos.grupo</field>
+        <field name="view_mode">kanban,list,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">Crea tu primer grupo de gastos</p>
+            <p>Un viaje, el piso, una cena… Añade a los miembros, apunta quién paga qué y Odoo calcula quién debe a quién.</p>
+        </field>
+    </record>
+</odoo>

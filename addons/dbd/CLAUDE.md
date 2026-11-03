@@ -5,7 +5,7 @@ Se edita en el backend (menú **Dead by Daylight**, solo con el grupo del módul
 con un diseño inspirado en el juego. Esta carpeta (`addons/dbd`) **es el módulo**. Docker, Postgres y bases de datos
 son comunes (`../../CLAUDE.md`, skills `odoo-docker`, `odoo-bases-de-datos`, `probar-modulo`).
 
-Decisión del usuario (2026-10-05): portal **separado de fuertafit** (su propia base de datos y sitio web, portada
+Decisión del usuario (2026-10-05): portal **separado de rutifuerta** (su propia base de datos y sitio web, portada
 `/dbd`). El catálogo completo está en la base real (importado el 2026-10-05; hay copia previa) y en la base de pruebas.
 
 ## Estructura
@@ -97,11 +97,12 @@ Solo CSS/JS: recargar el navegador (el `?v=` cambia al reiniciar Odoo).
 
 - Menú **Builds**: «Mis builds» (backend), «Crear build» (/dbd/build), «Build aleatoria» (/dbd/aleatoria) y
   «Builds publicadas» (/dbd/builds). En la web, también pestañas del portal. JS de la lista y el visor: builds.js.
-- **Crear build exige sesión** (el controlador manda a `/web/login?redirect=…`, que tiene «Crear cuenta»). La
-  ruleta y la lista no. Pueden tener builds los usuarios con `group_dbd_user` y los de **portal** (los que se dan de
-  alta desde la web). Abrir una propia: `/dbd/build?id=N`.
-- **Registro libre**: en Odoo 20 cada `website` tiene `auth_signup_uninvited`, que **manda** sobre el parámetro
-  general `auth_signup.invitation_scope`. `data/signup.xml` lo pone en `b2c` al instalar (noupdate).
+- **Crear build exige sesión** (el controlador manda a `/web/login?redirect=…`). La ruleta y la lista no. Pueden
+  tener builds los usuarios con `group_dbd_user` y los de **portal**. Abrir una propia: `/dbd/build?id=N`.
+- **Sin registro libre** (decisión del usuario, 2026-11-03: Odoo está abierto a internet): ya no hay «Crear cuenta»;
+  las cuentas de portal se crean por invitación. En Odoo 20 cada `website` tiene `auth_signup_uninvited`, que
+  **manda** sobre el parámetro general `auth_signup.invitation_scope`; el módulo ya no lo toca (se quitó
+  `data/signup.xml`, que lo ponía en `b2c` al instalar). No lo vuelvas a abrir sin que lo pida.
 - **Públicas/privadas**: `is_public`; las públicas salen en `/dbd/builds` y se ven en `/dbd/builds/ver?id=N` sin
   sesión (ir.access: lectura con dominio `is_public` para público, portal y usuarios). `author_name` se guarda en
   la build porque quien la ve no puede leer `res.users`. Enlaces compartidos: al visor (`?id=` si es pública, o la
@@ -121,5 +122,5 @@ Solo CSS/JS: recargar el navegador (el `?v=` cambia al reiniciar Odoo).
 
 - Si añades un campo, añádelo en el backend **y** en la web. Código y textos en español.
 - Pruebas: skill `probar-cambios` (base de pruebas); tests: `odoo db init dbd_tests` y
-  `odoo -d dbd_tests -i dbd --test-enable --test-tags /dbd --stop-after-init --http-port=8099 > log` (sin `| head`:
+  `odoo -d dbd_tests --db-filter='^dbd_tests$' -i dbd --test-enable --test-tags /dbd --stop-after-init --http-port=8099 > log` (sin `| head`:
   cortar la salida deja el proceso vivo ocupando el puerto), luego `odoo db drop dbd_tests`.

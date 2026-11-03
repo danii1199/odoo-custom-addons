@@ -5,25 +5,26 @@ description: Probar cambios de cualquier módulo de Odoo sin tocar los datos rea
 
 # Probar un módulo sin tocar datos reales
 
-Desde la raíz del repo, con `sg docker -c "..."`. Las skills del proyecto (p. ej. `addons/fuertafit/.claude/skills/probar-cambios`)
+Desde la raíz del repo, con `sg docker -c "..."`. Las skills del proyecto (p. ej. `addons/rutifuerta/.claude/skills/probar-cambios`)
 añaden lo específico de cada módulo.
 
 ## 1. Base de pruebas
 
 ```bash
-docker exec -i odoo odoo db duplicate -n <base-real> fuertafit_test   # copia neutralizada (sin crons ni correos)
-docker exec -i odoo odoo module upgrade -d fuertafit_test <modulo>  # aplica tu código a la copia
+docker exec -i odoo odoo db duplicate -n <base-real> rutifuerta_test   # copia neutralizada (sin crons ni correos)
+docker exec -i odoo odoo module upgrade -d rutifuerta_test <modulo>  # aplica tu código a la copia
 # … pruebas …
-docker exec -i odoo odoo db drop fuertafit_test
+docker exec -i odoo odoo db drop rutifuerta_test
 ```
 Para un módulo nuevo sin datos: `odoo db init <modulo>_test` + `odoo module install -d <modulo>_test <modulo>`.
 
 ## 2. Tests de Odoo (`tests/` del módulo)
 
 ```bash
-docker exec -i odoo odoo -d <modulo>_test -i <modulo> --test-enable --test-tags /<modulo> --stop-after-init
+docker exec -i odoo odoo -d <base> --db-filter='^<base>$' -u <modulo> --test-enable --test-tags /<modulo> --stop-after-init --http-port=8099
 ```
-Revisa `ERROR`/`FAIL` en la salida (`| grep -E "ERROR|FAIL|tests"`). Nunca lances tests contra `fuertafit`.
+`--db-filter` hace falta porque el `dbfilter` del despliegue solo deja abrir la base real (los HttpCase fallarían).
+Revisa `ERROR`/`FAIL` en la salida (`| grep -E "ERROR|FAIL|tests"`). Nunca lances tests contra `rutifuerta`.
 
 ## 3. Scripts en el shell de Odoo
 

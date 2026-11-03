@@ -3,7 +3,7 @@
 Reproductor propio de Spotify (Web API + Web Playback SDK) con datos propios encima: etiquetas, valoraciones, notas,
 playlists inteligentes, estadísticas y letras. El usuario tiene Premium. Interfaz y código en español.
 
-Es un proyecto del Odoo 20 común del repo (como `../fuertafit`): Docker, Postgres y bases de datos en la raíz
+Es un proyecto del Odoo 20 común del repo (como `../rutifuerta`): Docker, Postgres y bases de datos en la raíz
 (`../../CLAUDE.md`, skills `odoo-docker`, `odoo-bases-de-datos`, `probar-modulo`, `nuevo-modulo`).
 
 ## Estado (2026-10-05)
@@ -15,7 +15,7 @@ Es un proyecto del Odoo 20 común del repo (como `../fuertafit`): Docker, Postgr
 - Los datos de la app antigua (base `myspoty`) **no le importan al usuario**: no hay que migrarlos. Empezar limpio.
 - Cómo portarla: skill `portar-a-odoo`. Lo que se sabe de la API de Spotify: skill `spotify-api`.
 
-## Diseño previsto en Odoo (mismo patrón que fuertafit)
+## Diseño previsto en Odoo (mismo patrón que rutifuerta)
 
 ```
 addons/myspoty/

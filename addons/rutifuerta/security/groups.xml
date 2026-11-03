@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Acceso al módulo: solo quien esté en «Rutifuerta / Usuario» ve el menú, la web /rutifuerta y sus datos.
+     Se asigna en Ajustes → Usuarios. Al instalar, solo Dani (base.user_admin). -->
+<odoo>
+    <record id="module_category_rutifuerta" model="ir.module.category">
+        <field name="name">Rutifuerta</field>
+        <field name="sequence">60</field>
+    </record>
+
+    <record id="privilege_rutifuerta" model="res.groups.privilege">
+        <field name="name">Rutifuerta</field>
+        <field name="description">Acceso a las rutinas, el calendario y la web /rutifuerta.</field>
+        <field name="category_id" ref="module_category_rutifuerta"/>
+    </record>
+
+    <record id="group_fuerta_user" model="res.groups">
+        <field name="name">Usuario</field>
+        <field name="sequence">10</field>
+        <field name="privilege_id" ref="privilege_rutifuerta"/>
+        <field name="implied_ids" eval="[(4, ref('base.group_user'))]"/>
+        <field name="user_ids" eval="[(4, ref('base.user_admin'))]"/>
+    </record>
+</odoo>

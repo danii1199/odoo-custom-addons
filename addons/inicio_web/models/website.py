@@ -69,7 +69,7 @@ class Website(models.Model):
         dia = random.Random(hoy.toordinal())  # lo mismo durante todo el día
         tarjetas = []
 
-        if "fuerta.history" in env and not publico and user.has_group("fuertafit.group_fuerta_user"):
+        if "fuerta.history" in env and not publico and user.has_group("rutifuerta.group_fuerta_user"):
             lunes = hoy - timedelta(days=hoy.weekday())
             hechos = set(env["fuerta.history"].sudo().search(
                 [("user_id", "=", user.id), ("done_on", ">=", lunes), ("done_on", "<=", hoy)]).mapped("done_on"))
@@ -77,7 +77,7 @@ class Website(models.Model):
                        "hoy": i == hoy.weekday()} for i in range(7)]
             n = len(hechos)
             tarjetas.append({
-                "clave": "fuerta", "titulo": "Mi rutina", "url": "/fuerta", "marca": "MR",
+                "clave": "fuerta", "titulo": "Rutifuerta", "url": "/rutifuerta", "marca": "RF",
                 "dato": "Hoy ya has entrenado" if hoy in hechos else (
                     f"{n} {'día' if n == 1 else 'días'} esta semana" if n else "La semana está por estrenar"),
                 "semana": semana,
@@ -108,7 +108,7 @@ class Website(models.Model):
                 "extra_url": f"/overwatch/heroe/{heroe.key}" if heroe else "",
             })
 
-        if "gastos.miembro" in env and not publico and user.has_group("gastos.group_gastos_web"):
+        if "gastos.miembro" in env and not publico and user.has_group("apachas.group_gastos_web"):
             miembros = env["gastos.miembro"].sudo().search(
                 [("user_id", "=", user.id), ("grupo_id.active", "=", True)])
             saldo = round(sum(miembros.mapped("saldo")), 2)
@@ -122,7 +122,7 @@ class Website(models.Model):
             else:
                 dato, tono = "Todo en paz, nadie debe nada", ""
             tarjetas.append({
-                "clave": "gastos", "titulo": "Gastos", "url": "/gastos", "marca": "€",
+                "clave": "gastos", "titulo": "Apachas", "url": "/apachas", "marca": "€",
                 "dato": dato, "tono": tono,
                 "extra": f"{grupos} {'grupo' if grupos == 1 else 'grupos'}" if grupos else "",
             })

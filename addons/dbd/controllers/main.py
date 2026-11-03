@@ -27,8 +27,8 @@ def _json(data, status=200):
 
 
 def _can_save():
-    """Pueden tener builds: los usuarios internos con el grupo del módulo y los de portal (los que se crean cuenta
-    desde la web con «Crear cuenta»)."""
+    """Pueden tener builds: los usuarios internos con el grupo del módulo y los de portal (invitados: el registro
+    libre está cerrado porque Odoo está abierto a internet)."""
     user = request.env.user
     return user.has_group("dbd.group_dbd_user") or user.has_group("base.group_portal")
 
@@ -139,7 +139,7 @@ class DbdWeb(http.Controller):
 
     @page("/dbd/build")
     def build(self, **kw):
-        # Crear builds exige sesión: al login (con «Crear cuenta») y de vuelta aquí con los mismos parámetros
+        # Crear builds exige sesión: al login y de vuelta aquí con los mismos parámetros
         if request.env.user._is_public():
             return request.redirect("/web/login?redirect=" + quote(request.httprequest.full_path.rstrip("?"), safe=""))
         return self._render("dbd.build_page", "build", **self._build_values())

@@ -14,4 +14,4 @@ Enciclopedia de Dead by Daylight en Odoo: supervivientes, asesinos, perks, compl
   de [dbd.tricky.lol](https://dbd.tricky.lol) (datos) y de la [wiki oficial](https://deadbydaylight.wiki.gg)
   (imágenes). Gratis, sin claves; actualiza sin borrar nada. Úsalo cuando salga un capítulo nuevo.
 
-Separado de `fuertafit`: se instala en la base que quieras → `http://<servidor>:8069/dbd`.
+Separado de `rutifuerta`: se instala en la base que quieras → `http://<servidor>:8069/dbd`.

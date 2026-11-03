@@ -13,7 +13,7 @@ privado y la ve poca gente.
   - Mi rutina: días entrenados esta semana (`fuerta.history.done_on`), L–D marcados.
   - Dead by Daylight (también sin sesión): recuentos del catálogo y enlace a la build aleatoria.
   - Overwatch (pública): héroes y, con su grupo, favoritos; «héroe del día» al azar entre los favoritos (fijo durante el día) con su fondo.
-  - Gastos (grupo `gastos.group_gastos_web`): saldo total en sus grupos activos.
+  - Gastos (grupo `apachas.group_gastos_web`): saldo total en sus grupos activos.
   - Backend: solo usuarios internos.
 - **Personalizar menú** (2026-11-03, petición del usuario: «entro y solo quiero ver gastos»): en la portada, un
   `<details>` con una casilla por entrada de primer nivel del menú del sitio que el usuario puede ver (sin la

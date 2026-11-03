@@ -1,0 +1,285 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- La web de Rutifuerta como página del sitio web de Odoo (/rutifuerta): cabecera, menú y pie del sitio, y zonas
+     editables con el editor del sitio web (arriba y abajo de la app). La app en sí la pinta el JS de web/ (servido por el controlador, solo con permiso). -->
+<odoo>
+    <template id="app_page" name="Rutifuerta">
+        <t t-call="website.layout">
+            <t t-set="additional_title">Rutifuerta</t>
+            <div id="wrap">
+                <div class="oe_structure" id="oe_structure_fuerta_top">
+                    <section class="s_text_block pt16 pb0">
+                        <div class="container">
+                            <p class="text-muted mb-0">Tu plan de entrenamiento con los vídeos de FuertaFit.</p>
+                        </div>
+                    </section>
+                </div>
+                <div class="container my-3">
+                    <div id="fuerta-app" class="fuerta-app">
+                <div class="fa-head">
+                  <div class="bar">
+                    <h1>Ruti<span>fuerta</span></h1>
+                    <nav class="fa-nav">
+                      <a href="#/hoy" data-view="hoy">Hoy</a>
+                      <a href="#/calendario" data-view="calendario">Calendario</a>
+                      <a href="#/semana" data-view="semana">Plan semanal</a>
+                      <a href="#/rutinas" data-view="rutinas">Rutinas</a>
+                      <a href="#/entrenador" data-view="entrenador" id="botLink" hidden="">Entrenador</a>
+                      <a href="#/actualizar" data-view="actualizar">Actualizar</a>
+                    </nav>
+                    <label class="defmin" title="Se aplica al plan semanal, al calendario y al generador de Hoy">
+                      ⏱ <input type="number" id="defMin" min="5" max="180" step="5"/> min por defecto
+                    </label>
+                    <span class="who"><span id="userName"/>
+                      · <a href="/odoo/action-rutifuerta.action_plan" title="Ver y editar tus datos en el backend de Odoo">⚙ Gestionar en Odoo</a></span>
+                  </div>
+                </div>
+
+                <div class="fa-main">
+                  <!-- ================= HOY ================= -->
+                  <div class="view" id="view-hoy">
+                    <section id="todayPlan"/>
+
+                    <section class="sg-teaser">
+                      <div class="spread" style="margin-bottom:0">
+                        <div>
+                          <h2>¿Sin tiempo hoy? Plan sigilo · 30 min</h2>
+                          <p class="muted" style="margin:0">Rutina propia (no es de FuertaFit): sombra de boxeo y fuerza sin saltos
+                            ni ruido, intensa de verdad, con un temporizador mudo.</p>
+                        </div>
+                        <button class="main" onclick="location.hash = '#/sigilo'">Ir al Plan sigilo</button>
+                      </div>
+                    </section>
+
+                    <section>
+                      <h2>Generar una rutina</h2>
+                      <div class="fa-row" id="minutesRow"><label class="title">Tiempo disponible (min)</label></div>
+                      <div class="fa-row" id="groupsRow"><label class="title">Grupo muscular / enfoque</label></div>
+                      <div class="fa-row" id="typesRow"><label class="title">Tipo de entrenamiento</label></div>
+                      <div class="fa-row" id="intensityRow"><label class="title">Intensidad</label></div>
+                      <div class="fa-row" id="materialsRow"><label class="title">Material que tengo</label></div>
+                      <div class="fa-row">
+                        <label class="title">Opciones</label>
+                        <span class="chip" id="warmupChip">Empezar con calentamiento</span>
+                        <span class="chip" id="cooldownChip">Terminar con estiramiento / yoga</span>
+                        <span>No repetir lo hecho en los últimos <input type="number" id="avoidDays" min="0" max="90" value="14"/> días</span>
+                      </div>
+                      <button class="main" id="generateBtn">Generar rutina</button>
+                    </section>
+
+                    <section id="resultSection" hidden="">
+                      <div class="spread">
+                        <div><strong id="totalMin" style="font-size:20px"/> <span class="m" id="poolInfo"/></div>
+                        <div class="actions">
+                          <button class="ghost" id="regenBtn">Otra combinación</button>
+                          <span class="addform"><input type="date" id="saveDay"/><button class="main" id="saveBtn">Guardar en el calendario</button></span>
+                        </div>
+                      </div>
+                      <div class="blocks" id="blocks"/>
+                    </section>
+                  </div>
+
+                  <!-- ================= PLAN SIGILO (rutina propia, sin vídeos) ================= -->
+                  <div class="view" id="view-sigilo" hidden="">
+                    <section>
+                      <div class="spread">
+                        <h2>Plan sigilo · <span id="sgTotal"/></h2>
+                        <a href="#/hoy">‹ Volver a Hoy</a>
+                      </div>
+                      <p class="muted" style="margin-top:-6px">Para los días sin tiempo: 30 minutos intensos y en silencio,
+                        sin saltos ni golpes al suelo. El temporizador no suena; cambia de color y, si quieres, vibra.</p>
+                      <ul class="sg-rules" id="sgRules"/>
+                      <div class="fa-row" style="margin-bottom:0">
+                        <span class="chip" id="sgWeights">Tengo mancuernas</span>
+                        <span class="chip" id="sgVibrate">Vibrar al cambiar (móvil)</span>
+                      </div>
+                    </section>
+                    <section class="sg-timer" id="sgTimer">
+                      <div class="m" id="sgBlock"/>
+                      <div class="sg-name" id="sgName"/>
+                      <div class="sg-clock" id="sgClock"/>
+                      <div class="sg-tip" id="sgTip"/>
+                      <div class="m" id="sgNextName"/>
+                      <div class="sg-progress"><div id="sgBar"/></div>
+                      <div class="m" id="sgLeft"/>
+                      <div class="actions sg-ctrl">
+                        <button class="ghost" id="sgPrev">‹ Anterior</button>
+                        <button class="main" id="sgPlay">Empezar</button>
+                        <button class="ghost" id="sgNext">Siguiente ›</button>
+                        <button class="ghost" id="sgReset">Reiniciar</button>
+                      </div>
+                    </section>
+                    <section>
+                      <h2>La rutina</h2>
+                      <div id="sgList"/>
+                    </section>
+                  </div>
+
+                  <!-- ================= CALENDARIO ================= -->
+                  <div class="view" id="view-calendario" hidden="">
+                    <section>
+                      <div class="spread">
+                        <button class="ghost" id="prevMonth">‹</button>
+                        <h2 id="monthTitle"/>
+                        <button class="ghost" id="nextMonth">›</button>
+                      </div>
+                      <div class="cal" id="cal"/>
+                      <p class="muted" style="margin:10px 0 0">Verde: todo hecho · verde suave: a medias · borde verde: hoy.
+                        Puntos: <span class="g-pierna"><span class="dot legend"/></span> pierna ·
+                        <span class="g-torso"><span class="dot legend"/></span> torso ·
+                        <span class="g-core"><span class="dot legend"/></span> core ·
+                        <span class="g-full"><span class="dot legend"/></span> fullbody ·
+                        <span class="g-cardio"><span class="dot legend"/></span> cardio ·
+                        <span class="g-mente"><span class="dot legend"/></span> cuerpo-mente ·
+                        <span class="g-calen"><span class="dot legend"/></span> calentamiento.<br/>
+                        Arrastra un día con rutina a otro para moverla (si el otro ya tiene, se intercambian).</p>
+                    </section>
+                    <section id="dayDetail"/>
+                    <section>
+                      <h2>Vacaciones y ausencias</h2>
+                      <div class="fa-row" style="margin-bottom:8px">
+                        <span>Del <input type="date" id="awayFrom"/> al <input type="date" id="awayTo"/></span>
+                        <input type="text" id="awayNote" placeholder="Motivo (opcional): vacaciones, viaje…" style="flex:1;min-width:180px"/>
+                      </div>
+                      <div class="actions">
+                        <label class="muted"><input type="checkbox" id="awayRemove" checked="checked"/> quitar las rutinas de esos días</label>
+                        <button class="main" id="awayBtn">Marcar como fuera</button>
+                      </div>
+                      <p class="muted" style="margin:8px 0 0">Si no las quitas, se quedan en el calendario marcadas como «no estoy».
+                        En esos días no se generan rutinas automáticas.</p>
+                      <div class="awaylist" id="awayList"/>
+                    </section>
+                  </div>
+
+                  <!-- ================= PLAN SEMANAL ================= -->
+                  <div class="view" id="view-semana" hidden="">
+                    <section>
+                      <h2>Mis semanas</h2>
+                      <p class="muted" style="margin-top:-6px">Elige cuántos días entrenas y cuánto tiempo tienes: tu semana tipo
+                        se rellena sola con la <strong>★ recomendada</strong> (pautas ACSM/NSCA) y sus minutos. Luego puedes
+                        retocarla abajo y guardarla como tuya; tus semanas guardadas aparecen junto a la recomendada.</p>
+                      <div class="fa-row" id="wkWorlds"/>
+                      <div class="fa-row" id="wkTimes"/>
+                      <div class="templates" id="templates"/>
+                    </section>
+                    <section>
+                      <h2>Tu semana tipo</h2>
+                      <p class="muted" style="margin-top:-6px">Elige qué toca cada día o márcalo como descanso.
+                        Si marcas dos grupos, el tiempo se reparte entre ellos. Para cambiar un día concreto (moverlo, saltarlo o
+                        vacaciones) usa el <a href="#/calendario">calendario</a>.</p>
+                      <div class="weekgrid" id="weekGrid"/>
+                      <div class="actions wk-save">
+                        <input type="text" id="wkName" placeholder="Nombre (p. ej. 3 días · fullbody L/M/X)"/>
+                        <button class="ghost" id="wkUpdate" hidden="">Guardar cambios en esta semana</button>
+                        <button class="ghost" id="wkNew">Guardar como semana nueva</button>
+                      </div>
+                    </section>
+                    <section>
+                      <h2>Cada sesión</h2>
+                      <div class="fa-row">
+                        <label class="title">Duración: la de «min por defecto» de arriba (puedes cambiarla para un día concreto en el calendario)</label>
+                        <span class="chip" id="wWarmup">Empezar con calentamiento</span>
+                        <span class="chip" id="wCooldown">Terminar con estiramiento / yoga</span>
+                      </div>
+                      <div class="fa-row" id="wMaterials"><label class="title">Material que tengo (sin marcar = cualquiera)</label></div>
+                      <div class="fa-row" style="margin-bottom:0">
+                        <span class="chip" id="wAuto">Rellenar el calendario automáticamente cada semana</span>
+                      </div>
+                    </section>
+                    <section>
+                      <div class="actions">
+                        <button class="main" id="wSave">Guardar</button>
+                        <button class="ghost" id="wThis">Generar esta semana</button>
+                        <button class="ghost" id="wNext">Generar la semana que viene</button>
+                        <label class="muted"><input type="checkbox" id="wOverwrite"/> sustituir días ya planificados</label>
+                      </div>
+                      <p class="muted" id="wMsg" style="margin-bottom:0"/>
+                    </section>
+                  </div>
+
+                  <!-- ================= RUTINAS ================= -->
+                  <div class="view" id="view-rutinas" hidden="">
+                    <section>
+                      <div class="fa-row">
+                        <input type="search" id="q" placeholder="Buscar: glúteos, yoga, hiit, Ana…" style="flex:1;min-width:200px"/>
+                        <select id="maxMin">
+                          <option value="">Cualquier duración</option>
+                          <option value="10">≤ 10 min</option><option value="15">≤ 15 min</option>
+                          <option value="20">≤ 20 min</option><option value="30">≤ 30 min</option><option value="45">≤ 45 min</option>
+                        </select>
+                      </div>
+                      <div class="fa-row" id="cGroupsRow"/>
+                      <div class="fa-row" id="cTypesRow"/>
+                      <div class="fa-row" id="cIntensityRow" style="margin-bottom:0"/>
+                    </section>
+                    <p class="muted" id="catCount" style="margin:0"/>
+                    <div class="grid" id="catalog"/>
+                    <button class="ghost" id="moreBtn" hidden="">Cargar más</button>
+                  </div>
+
+                  <!-- ================= ACTUALIZAR ================= -->
+                  <div class="view" id="view-actualizar" hidden="">
+                    <section>
+                      <h2>Catálogo</h2>
+                      <p id="syncInfo" class="muted" style="margin:0"/>
+                    </section>
+                    <section>
+                      <h2>Traer rutinas nuevas de FuertaFit</h2>
+                      <p class="muted" style="margin-top:-6px">Se hace desde tu navegador con tu sesión de FuertaFit: no hace falta
+                        contraseña ni se descarga ningún vídeo, solo los datos de las rutinas nuevas.</p>
+                      <ol class="steps">
+                        <li><strong>Una sola vez:</strong> arrastra este botón a la barra de marcadores
+                          (si no la ves: <kbd>Ctrl</kbd>+<kbd>Mayús</kbd>+<kbd>B</kbd>).<br/>
+                          <a class="bookmarklet" id="bookmarklet" href="#" onclick="return false">⟳ Actualizar Fuerta</a>
+                          <div class="muted">Cada ordenador o navegador necesita su propio marcador (apunta a <span id="appUrl"/>).</div></li>
+                        <li>Abre <a href="https://webapp.fuertafit.com/#/training" target="_blank" rel="noopener">webapp.fuertafit.com</a>
+                          e inicia sesión si te lo pide.</li>
+                        <li>Estando en FuertaFit, pulsa el marcador <strong>⟳ Actualizar Fuerta</strong>. Se abrirá una ventanita
+                          con el progreso; si el navegador bloquea la ventana emergente, permítela y vuelve a pulsarlo.</li>
+                        <li>Cuando diga «¡Listo!», recarga esta página.</li>
+                      </ol>
+                      <p class="muted" style="margin-bottom:0">Las rutinas nuevas suelen ser pocas, así que tarda segundos.
+                        También puedes pedírmelo en Claude Code como la primera vez.</p>
+                    </section>
+                  </div>
+
+                  <!-- ================= ENTRENADOR ================= -->
+                  <div class="view" id="view-entrenador" hidden="">
+                    <section>
+                      <div class="spread">
+                        <h2>Tu entrenador</h2>
+                        <button class="ghost" id="clearChat">Nueva conversación</button>
+                      </div>
+                      <div id="botOff" class="muted" hidden=""/>
+                      <div class="chat" id="chat"/>
+                      <div class="fa-row" id="suggestions" style="margin:12px 0 0"/>
+                      <div class="composer">
+                        <textarea id="prompt" rows="2" placeholder="Ej.: planifícame la semana, 30 min al día, martes y jueves fuerza…"/>
+                        <button class="main" id="sendBtn">Enviar</button>
+                      </div>
+                    </section>
+
+                    <section>
+                      <h2>Lo que el entrenador debe saber de ti</h2>
+                      <textarea id="preferences" rows="3" placeholder="Objetivos, días que no entrenas, molestias…"/>
+                      <div class="actions" style="margin-top:10px"><button class="main" id="savePrefs">Guardar</button><span class="muted" id="prefsMsg"/></div>
+                    </section>
+                  </div>
+                </div>
+
+                    </div>
+                </div>
+                <div class="oe_structure" id="oe_structure_fuerta_bottom"/>
+            </div>
+            <link rel="stylesheet" t-attf-href="/rutifuerta/web/css/app.css?v={{v}}"/>
+            <script t-attf-src="/rutifuerta/web/js/common.js?v={{v}}"/>
+            <script t-attf-src="/rutifuerta/web/js/hoy.js?v={{v}}"/>
+            <script t-attf-src="/rutifuerta/web/js/calendario.js?v={{v}}"/>
+            <script t-attf-src="/rutifuerta/web/js/semana.js?v={{v}}"/>
+            <script t-attf-src="/rutifuerta/web/js/actualizar.js?v={{v}}"/>
+            <script t-attf-src="/rutifuerta/web/js/rutinas.js?v={{v}}"/>
+            <script t-attf-src="/rutifuerta/web/js/entrenador.js?v={{v}}"/>
+            <script t-attf-src="/rutifuerta/web/js/sigilo.js?v={{v}}"/>
+            <script t-attf-src="/rutifuerta/web/js/main.js?v={{v}}"/>
+        </t>
+    </template>
+</odoo>

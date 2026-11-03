@@ -36,13 +36,13 @@ no choca con el servidor en marcha). Tras actualizar, reinicia para que el servi
 - `odoo-entrypoint.sh` va **dentro de la imagen**: tras editarlo, `servicios.sh build odoo` (un `restart` sigue usando el viejo).
 - Los addons se montan en solo lectura: no hace falta `--build` para cambios de código, pero sí actualizar el módulo
   si cambian modelos, vistas, datos o permisos.
-- Estáticos (`static/`): Odoo los cachea en el navegador; recarga forzada o versiona las URL (ver `fuertafit`).
+- Estáticos (`static/`): Odoo los cachea en el navegador; recarga forzada o versiona las URL (ver `rutifuerta`).
 - `servicios.sh down` está bien; **`down -v` o `docker volume rm` borran todas las bases de datos**: nunca sin
   confirmación explícita del usuario.
 - Antes de recrear un contenedor, si necesitas sus logs, míralos: se pierden.
 - No uses `pkill -f` con patrones amplios: puede matar tu propia shell.
 - **"A css error occurred, using an old style"** (franja roja abajo; error SCSS de `rgba($color…)` en Bootstrap):
-  a la base le faltan módulos estándar auto-instalables, sobre todo `html_editor`. Le pasó a `fuertafit` el
+  a la base le faltan módulos estándar auto-instalables, sobre todo `html_editor`. Le pasó a `rutifuerta` el
   2026-10-05. Arreglo: `odoo module install -d <bd> html_editor`, borrar la caché de CSS
   (`env["ir.attachment"].search([("url", "=like", "/web/assets/%")]).unlink()` + `env.cr.commit()` en `odoo shell`) y
   `restart odoo`. Para ver el error real: `curl` del `.css` enlazado en `/web/login` y buscar `css_error_message`.

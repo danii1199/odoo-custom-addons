@@ -1,11 +1,11 @@
 ---
 name: portar-a-odoo
-description: Portar la app antigua de myspoty (carpeta app/) a un módulo de Odoo 20 `myspoty`, siguiendo el patrón de fuertafit. Úsala cuando el usuario pida empezar o continuar el módulo de myspoty, o al mover una parte concreta (modelos, sync, inteligentes, letras, web).
+description: Portar la app antigua de myspoty (carpeta app/) a un módulo de Odoo 20 `myspoty`, siguiendo el patrón de rutifuerta. Úsala cuando el usuario pida empezar o continuar el módulo de myspoty, o al mover una parte concreta (modelos, sync, inteligentes, letras, web).
 ---
 
 # Portar myspoty a Odoo
 
-Referencia de cómo se hizo con fuertafit: `../fuertafit` (controlador con `_api`, `services/` con
+Referencia de cómo se hizo con rutifuerta: `../rutifuerta` (controlador con `_api`, `services/` con
 `env`, web en `static/web`, cron) y la skill raíz `nuevo-modulo`. Los datos antiguos **no se migran**.
 
 ## Mapa app antigua → módulo
@@ -32,7 +32,7 @@ Referencia de cómo se hizo con fuertafit: `../fuertafit` (controlador con `_api
    `request.session` en vez de en memoria) y `/myspoty/login` + `/myspoty/callback`. 4. Biblioteca, etiquetas,
    valoraciones. 5. Sync + cron. 6. Inteligentes. 7. Letras. 8. Web estática.
 3. Cada paso: `odoo module upgrade -d myspoty_test myspoty`, revisar logs, probar. Instalar en la base real
-   (¿`fuertafit` u otra base nueva?) **solo cuando el usuario diga en cuál**.
+   (¿`rutifuerta` u otra base nueva?) **solo cuando el usuario diga en cuál**.
 
 ## Cuidado
 

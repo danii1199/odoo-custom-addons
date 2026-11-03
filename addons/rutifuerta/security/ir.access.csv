@@ -1,0 +1,12 @@
+id,name,model_id,group_id/id,operation,domain
+access_routine_user,Catálogo: lectura (común a quien tenga acceso),fuerta.routine,rutifuerta.group_fuerta_user,r,
+access_routine_admin,Catálogo: administración,fuerta.routine,base.group_system,crud,
+access_history_user,Historial: solo el propio,fuerta.history,rutifuerta.group_fuerta_user,crud,"[('user_id', '=', user.id)]"
+access_plan_user,Plan: solo el propio,fuerta.plan,rutifuerta.group_fuerta_user,crud,"[('user_id', '=', user.id)]"
+access_day_status_user,Estados de día: solo los propios,fuerta.day.status,rutifuerta.group_fuerta_user,crud,"[('user_id', '=', user.id)]"
+access_settings_user,Ajustes: solo los propios,fuerta.settings,rutifuerta.group_fuerta_user,crud,"[('user_id', '=', user.id)]"
+access_week_plan_user,Semanas guardadas: solo las propias,fuerta.week.plan,rutifuerta.group_fuerta_user,crud,"[('user_id', '=', user.id)]"
+access_week_plan_recommended,Semanas recomendadas: lectura (comunes),fuerta.week.plan,rutifuerta.group_fuerta_user,r,"[('recommended', '=', True)]"
+access_group_user,Grupos musculares: lectura,fuerta.group,rutifuerta.group_fuerta_user,r,
+access_away_wizard_user,Asistente de ausencias,fuerta.away.wizard,rutifuerta.group_fuerta_user,crud,
+access_routine_import_user,Asistente de importar rutinas,fuerta.routine.import,rutifuerta.group_fuerta_user,crud,

@@ -12,7 +12,6 @@
         "security/groups.xml",
         "security/ir.access.csv",
         "data/website_menu.xml",
-        "data/signup.xml",
         "data/datos_iniciales.xml",
         "views/character_views.xml",
         "views/perk_views.xml",
