@@ -1,4 +1,4 @@
-# proyectitos
+# odoo-custom-addons
 
 Odoo 20 Community con mis módulos propios. Postgres y Odoo comunes en Docker; cada proyecto es una carpeta de
 `addons/` (los extra-addons): cada carpeta de `addons/` es un módulo.
@@ -19,21 +19,21 @@ instalación y copias viven fuera del repo, en `~/servicios/` de mi PC, y viajan
 ## Instalar (en este PC o en otro)
 
 `~/servicios/instalar.sh` lo hace **todo** en un Linux Mint / Ubuntu recién instalado: git, Docker y Compose, Claude
-Code, el repo en `~/proyectitos/claude-test`, `~/servicios`, `.env` con contraseñas al azar, Odoo y Postgres, y restaura
+Code, el repo en `~/proyectos/odoo-custom-addons`, `~/servicios`, `.env` con contraseñas al azar, Odoo y Postgres, y restaura
 las copias. Se puede repetir sin miedo: no sobrescribe `.env`, el repo ni una base que ya exista.
 
 ### Llevarlo a otro PC
 
 1. En este PC: `~/servicios/preparar-mudanza.sh` (o `… claude-main claude-test` para varias bases).
-   Crea `~/proyectitos/mudanza-<fecha>/` con la copia de las bases (base + adjuntos), el repo tal cual (historial de
+   Crea `~/proyectos/mudanza-<fecha>/` con la copia de las bases (base + adjuntos), el repo tal cual (historial de
    git y cambios sin subir), `~/servicios` (sin `.env` ni los datos de Vaultwarden), tus ajustes de Claude y el instalador. Cópiala a un USB: son **datos reales**,
    no la subas a ningún sitio público.
 2. En el PC nuevo: `bash /ruta/al/usb/mudanza-<fecha>/instalar.sh` (pide la contraseña de sudo).
-3. Odoo en http://localhost:8069 con tu usuario de siempre. Claude: terminal nueva, `cd ~/proyectitos/claude-test && claude`
+3. Odoo en http://localhost:8069 con tu usuario de siempre. Claude: terminal nueva, `cd ~/proyectos/odoo-custom-addons && claude`
    (la primera vez, iniciar sesión). La contraseña maestra del gestor de bases es nueva: `ODOO_MASTER_PASSWORD` en `~/servicios/.env`.
 
 Sin carpeta de mudanza, `instalar.sh` clona el repo de GitHub, pero necesita `~/servicios` (no está en git). Una copia
-suelta se restaura con `~/servicios/instalar.sh ~/proyectitos/copias-seguridad/<base>-<fecha>.zip [nombre-base]`.
+suelta se restaura con `~/servicios/instalar.sh ~/proyectos/copias-seguridad/<base>-<fecha>.zip [nombre-base]`.
 
 ## Contraseñas (.env)
 
@@ -48,7 +48,7 @@ suelta se restaura con `~/servicios/instalar.sh ~/proyectitos/copias-seguridad/<
 - Los datos viven en los volúmenes Docker `postgres-datos` y `odoo-datos`, **fuera del repo**.
   ⚠️ `docker compose down -v` o `docker volume rm` los borran.
 - Copia de una base: `~/servicios/copia-seguridad.sh [base]` (por defecto `claude-main`).
-- Copia de todo Postgres: `docker exec postgres pg_dumpall -U admin > ~/proyectitos/copias-seguridad/todo.sql`
+- Copia de todo Postgres: `docker exec postgres pg_dumpall -U admin > ~/proyectos/copias-seguridad/todo.sql`
 
 ## Cambios de código
 

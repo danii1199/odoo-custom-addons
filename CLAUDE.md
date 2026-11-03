@@ -1,4 +1,4 @@
-# proyectitos (repo `claude-test`)
+# odoo-custom-addons
 
 Un **Odoo 20 Community** común donde el usuario va añadiendo sus propios módulos. Cada proyecto es una carpeta de
 `addons/` (los extra-addons) que **es el propio módulo** (`__manifest__.py`, `models/`… directamente dentro), su propia memoria (`addons/<proyecto>/CLAUDE.md`) y sus propias
@@ -30,9 +30,9 @@ postgres/              compose propio (proyecto `postgres`) + init/ (primera vez
 odoo/                  compose propio (proyecto `odoo`): build desde este repo, monta odoo.conf y addons/ (ODOO_REPO para otra ruta)
 vaultwarden/           compose propio (proyecto `vaultwarden`, puerto 8080) + vw-data/ (de root: la bóveda cifrada)
 instalar.sh            instala TODO en un Mint/Ubuntu vacío (apt, Docker, Claude Code, repo, servicios, .env al azar, copias .zip)
-preparar-mudanza.sh    ~/proyectitos/mudanza-<fecha>/: copias + repo y servicios en tar.gz (sin .env ni vw-data) + instalar.sh
+preparar-mudanza.sh    ~/proyectos/mudanza-<fecha>/: copias + repo y servicios en tar.gz (sin .env ni vw-data) + instalar.sh
 ajustar-env.sh         cambia una clave del .env sin mostrarla (+ ALTER ROLE en Postgres y recrear postgres y odoo)
-copia-seguridad.sh     copia de una base (por defecto claude-main) en ~/proyectitos/copias-seguridad/<base>-<fecha>.zip
+copia-seguridad.sh     copia de una base (por defecto claude-main) en ~/proyectos/copias-seguridad/<base>-<fecha>.zip
 ```
 
 - `addons/` se monta **en solo lectura** en `/mnt/extra-addons`. `odoo-entrypoint.sh` mete en `addons_path` cada
@@ -47,7 +47,7 @@ copia-seguridad.sh     copia de una base (por defecto claude-main) en ~/proyecti
   `docker restart odoo`, `docker logs odoo` van por nombre de contenedor y valen desde cualquier carpeta; arrancar,
   parar, recrear o reconstruir, con `~/servicios/servicios.sh` (un proyecto Compose por carpeta, independientes).
 - Contenedores `postgres`, `odoo` y `vaultwarden`. Odoo **no** depende de Postgres en Compose: lo busca por la red
-  externa `proyectitos` (`db_host = postgres`). Volúmenes `postgres-datos` (bases de datos) y `odoo-datos`
+  externa `proyectos` (`db_host = postgres`). Volúmenes `postgres-datos` (bases de datos) y `odoo-datos`
   (filestore y sesiones), con nombre fijo: no dependen de ninguna carpeta. Compose avisa de que "were created for
   project proyectitos": es normal, se crearon antes de separar los proyectos (2026-10-30). **No** pongas
   `external: true` ni los borres.

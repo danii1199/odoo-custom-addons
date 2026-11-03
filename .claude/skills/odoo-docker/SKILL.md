@@ -7,7 +7,7 @@ description: Arrancar, parar, reiniciar, reconstruir o revisar el Odoo 20 común
 
 Los compose **no están en el repo**: viven en `~/servicios/` (solo en este PC, sin git), un proyecto Compose por
 carpeta (`postgres/`, `odoo/`, `vaultwarden/`), independientes entre sí; Odoo encuentra a Postgres por la red
-`proyectitos`. `~/servicios/servicios.sh` los maneja todos. Siempre envuelto en `sg docker -c "..."` (sin el grupo
+`proyectos`. `~/servicios/servicios.sh` los maneja todos. Siempre envuelto en `sg docker -c "..."` (sin el grupo
 `docker` activo da "permission denied"). Los `docker exec`/`docker restart` van por nombre de contenedor: valen desde
 cualquier carpeta.
 

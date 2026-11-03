@@ -22,7 +22,7 @@ _logger = logging.getLogger(__name__)
 
 API = "https://dbd.tricky.lol/api/"
 WIKI_API = "https://deadbydaylight.wiki.gg/api.php"
-HEADERS = {"User-Agent": "proyectitos-dbd/1.0 (modulo de Odoo de uso personal)"}
+HEADERS = {"User-Agent": "proyectos-dbd/1.0 (modulo de Odoo de uso personal)"}
 TIMEOUT = 60
 
 RARITY = {"common": "common", "uncommon": "uncommon", "rare": "rare", "veryrare": "very_rare",

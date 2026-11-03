@@ -7,7 +7,7 @@ son comunes (`../../CLAUDE.md`, skills `odoo-docker`, `odoo-bases-de-datos`, `pr
 
 Decisión del usuario (2026-10-05): portal **separado de fuertafit** (su propia base de datos y sitio web, portada
 `/dbd`). El catálogo completo está en `claude-main` (la real, importado el 2026-10-05; copia previa en
-`~/proyectitos/copias-seguridad/claude-main-2026-10-05-antes-dbd.zip`) y en la base de pruebas `claude-test`.
+`~/proyectos/copias-seguridad/claude-main-2026-10-05-antes-dbd.zip`) y en la base de pruebas `claude-test`.
 
 ## Estructura
 

@@ -59,4 +59,4 @@ Spotify y estadísticas propias. Necesita **Spotify Premium** para reproducir.
 
 ## Conexión con otros proyectos
 
-El contenedor está en la red Docker `proyectitos`: otro contenedor de esa red puede llamarlo en `http://myspoty:8001`.
+El contenedor está en la red Docker `proyectos`: otro contenedor de esa red puede llamarlo en `http://myspoty:8001`.
