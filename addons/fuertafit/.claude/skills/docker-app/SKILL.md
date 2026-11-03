@@ -24,4 +24,4 @@ en Odoo no duplica nada.
 sg docker -c "docker exec -i -e MIGRAR_LOGIN=admin odoo odoo shell -d <base> --no-http" \
     < addons/fuertafit/scripts/migrar_rutinas.py
 ```
-`RUTINAS_DATABASE_URL` llega al contenedor como variable de entorno (detalle en `CLAUDE.local.md` de la raíz).
+`RUTINAS_DATABASE_URL` llega al contenedor como variable de entorno.

@@ -1,9 +1,4 @@
 .env
 __pycache__/
 
-# Claude: lo que describe la infraestructura privada se queda en local
-CLAUDE.local.md
 .claude/settings.local.json
-.claude/skills/ajustar-env/
-.claude/skills/odoo-docker/
-.claude/skills/odoo-bases-de-datos/

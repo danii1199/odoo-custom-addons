@@ -9,7 +9,7 @@ Lo general está en la skill raíz `probar-modulo`. Desde la raíz del repo y co
 
 ## Base de pruebas
 
-La base de pruebas del usuario (nombre en `CLAUDE.local.md` de la raíz) (ya tiene el catálogo completo). Para algo arriesgado, haz una copia:
+Si el usuario tiene una base de pruebas (nombre en la memoria de Claude), úsala; si no existe o es algo arriesgado, haz una copia:
 
 ```bash
 docker exec -i odoo odoo db duplicate -n <base-pruebas> dbd_test

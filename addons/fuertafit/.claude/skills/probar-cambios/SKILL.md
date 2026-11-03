@@ -6,7 +6,7 @@ description: Cómo probar cambios de Mi rutina Fuerta (generador, calendario, pl
 # Probar fuertafit sin tocar los datos del usuario
 
 Lo general (bases de pruebas, tests, shell) está en la skill raíz `probar-modulo`. Aquí lo propio de este módulo.
-Datos reales: la base real (nombre en `CLAUDE.local.md` de la raíz). El usuario **no quiere que se restauren ni recreen** datos que haya borrado.
+Datos reales: la base real (nombre en la memoria de Claude). El usuario **no quiere que se restauren ni recreen** datos que haya borrado.
 
 ## 1. Copia de pruebas (desde la raíz, con `sg docker -c "..."`)
 

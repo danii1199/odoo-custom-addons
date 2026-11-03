@@ -3,8 +3,8 @@
 Un **Odoo 20 Community** común donde el usuario va añadiendo sus propios módulos. Cada proyecto es una carpeta de
 `addons/` (los extra-addons) que **es el propio módulo** (`__manifest__.py`, `models/`… directamente dentro), su propia memoria (`addons/<proyecto>/CLAUDE.md`) y sus propias
 skills (`addons/<proyecto>/.claude/skills`).
-Postgres y Odoo son **comunes**; su despliegue (Compose, `.env`, scripts) vive fuera del repo y se describe en
-`CLAUDE.local.md` (privado, no va a git: el repo es público). Todo en español: código, comentarios, interfaz y documentación.
+Postgres y Odoo son **comunes**; su despliegue (Compose, `.env`, scripts) vive fuera del repo, en la carpeta de
+servicios del usuario (ruta en la memoria de Claude). El repo es **público**. Todo en español: código, comentarios, interfaz y documentación.
 
 ## Estructura
 
@@ -32,7 +32,7 @@ addons/                extra-addons: cada carpeta es un módulo (nombre técnico
 
 - Siempre `sg docker -c "..."` (la sesión puede no tener aún el grupo `docker`). `docker exec odoo …`,
   `docker restart odoo`, `docker logs odoo` van por nombre de contenedor y valen desde cualquier carpeta; arrancar,
-  parar, recrear o reconstruir: ver `CLAUDE.local.md`.
+  parar, recrear o reconstruir, con `servicios.sh` de la carpeta de servicios (skill `odoo-docker`).
 - Contenedores `postgres` y `odoo`; los datos viven en volúmenes Docker, fuera del repo. **No** los borres.
 - Odoo 20 necesita HTTPS fuera de `localhost` (si no, el backend se queda en blanco): por eso `proxy_mode = True`.
 - Si se recrea la carpeta `addons/` (reestructurar, clonar de nuevo…), el contenedor sigue viendo la antigua
@@ -46,7 +46,8 @@ addons/                extra-addons: cada carpeta es un módulo (nombre técnico
   contraseña maestra (**no la muestres**). Odoo solo lista las bases cuyo dueño es `odoo`.
 - Por consola: `odoo db {init,duplicate,dump,load,rename,drop}` y `odoo module {install,upgrade,uninstall,list}`
   dentro del contenedor (`docker exec -i odoo odoo ...`). Gestionan también el filestore.
-- Hay una **base real** (datos del usuario) y una **base de pruebas**; sus nombres, en `CLAUDE.local.md`.
+- Hay una **base real** (datos del usuario) y una **base de pruebas**; sus nombres, en la memoria de Claude
+  (si no los sabes, pregunta antes de tocar nada).
 - En Odoo 20 el servicio `db` de `/jsonrpc` ya no existe: usa el gestor web o el CLI.
 
 ## Odoo 20: convenciones de los módulos (ver `addons/fuertafit` como ejemplo)
@@ -86,6 +87,6 @@ addons/                extra-addons: cada carpeta es un módulo (nombre técnico
 - No leer ni mostrar `.env`, contraseñas ni tokens; para cambiarlos, skill `ajustar-env`.
 - Nada de funciones que obliguen a pagar APIs (el usuario no quiere); preferir reglas deterministas.
 - El repo es **público**: no escribas en archivos versionados rutas de la infraestructura, del `.env`, puertos,
-  Tailscale, nombres de bases ni contraseñas; eso va en `CLAUDE.local.md`.
+  red, nombres de bases ni contraseñas.
 - Nuevo proyecto o módulo: skill `nuevo-modulo` (carpeta, montaje, CLAUDE.md y skills propias).
 - Sin node ni venv en el sistema: lo que haga falta, en contenedores (`node:20-alpine`, la propia imagen de Odoo).
