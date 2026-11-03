@@ -10,8 +10,8 @@ Hay dos caminos. Prefiere el primero; usa el segundo si el usuario te lo pide a 
 ## A. El usuario lo hace solo (sin Claude)
 
 Pestaña **Actualizar** de la web (`/rutifuerta#actualizar`): arrastrar el marcador «⟳ Actualizar Fuerta» a favoritos, abrir
-webapp.fuertafit.com con sesión y pulsarlo. Solo trae rutinas nuevas. Código: `static/web/bookmarklet.js` y
-`static/web/sync.html` (servido en `/rutifuerta/sync`). Si falla, revisa esos dos archivos y `POST /rutifuerta/api/catalog/import`
+webapp.fuertafit.com con sesión y pulsarlo. Solo trae rutinas nuevas. Código: `web/bookmarklet.js` y
+`web/sync.html` (servido en `/rutifuerta/sync`). Si falla, revisa esos dos archivos y `POST /rutifuerta/api/catalog/import`
 (`controllers/main.py` → `fuerta.routine.import_items` en `models/routine.py`, limpieza en `services/catalog.clean_item`).
 
 ## B. Hacerlo tú con Claude in Chrome

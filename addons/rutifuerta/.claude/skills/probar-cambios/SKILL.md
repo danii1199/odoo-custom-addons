@@ -45,7 +45,7 @@ Sin `env.cr.commit()` nada se guarda.
 - "Cannot access a chrome-extension:// URL of different extension": otra extensión tapa la pestaña; sigue con `curl`.
 - Módulos JS expuestos para probar desde `javascript_tool`: `Hoy`, `Cal` (`select`, `move`, `skip`, `generate`),
   `Week`, `Cat`, `Sync`.
-- Sin navegador: `node --check` de `addons/rutifuerta/static/web/js/*.js` con `node:20-alpine` en Docker;
+- Sin navegador: `node --check` de `addons/rutifuerta/web/js/*.js` con `node:20-alpine` en Docker;
   concaténalos en orden de carga para detectar nombres declarados dos veces entre archivos.
 
 ## 5. Refactors: comparar la API antes y después

@@ -11,7 +11,7 @@ desde `addons/rutifuerta` (en `/mnt/extra-addons/rutifuerta`) en el contenedor `
 | Qué | Comando |
 |---|---|
 | Cambios en Python, XML, permisos o datos | `docker exec -i odoo odoo module upgrade -d <base> rutifuerta && docker restart odoo` |
-| Solo estáticos (`static/web`) | nada: recarga el navegador (la versión `__V__` cambia sola) |
+| Solo estáticos (`web/`) | nada: recarga el navegador (la versión `__V__` cambia sola) |
 | Comprobar | `curl -s -o /dev/null -w '%{http_code}\n' localhost:8069/rutifuerta` (303 = pide login: bien) |
 | Errores del módulo | `docker logs odoo --tail 80 \| grep -A15 -i "error\|traceback"` |
 

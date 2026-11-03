@@ -26,7 +26,7 @@ views/           web_templates.xml (la página /rutifuerta), vistas del backend,
 data/            ir_cron.xml (plan automático), groups.xml (7 grupos), website_menu.xml («Mi rutina» en el menú web)
 security/        groups.xml (grupo de acceso), ir.access.csv: catálogo y grupos lectura; plan/historial/estados/ajustes
                  solo los propios; todo exige el grupo
-static/web/      css/app.css (todo bajo .fuerta-app), js/<pestaña>.js, sync.html, bookmarklet.js
+web/             css/app.css (todo bajo .fuerta-app), js/<pestaña>.js, sync.html, bookmarklet.js
 scripts/         migrar_rutinas.py (rutinas → Odoo; solo lee la base antigua; se lanza con `odoo shell`)
 ```
 
@@ -80,7 +80,7 @@ Si añades algo a la web, añade su equivalente en el backend (y al revés).
   seguir con ella aunque algún día salga más largo (los vídeos a veces incluyen más que el entrenamiento). No corregir
   duraciones a mano sin que lo pida (2026-10-19 se probó con «Entrenamiento 30 de enero», id 1691, y lo dejó en 20).
 - `semana.js`: `save()` sustituye `s`; los chips leen siempre `s.week[i]` al hacer clic (antes editaban el objeto viejo).
-- **Plan sigilo** (2026-10-21, `static/web/js/sigilo.js`, vista `#/sigilo` enlazada desde Hoy): rutina **propia**, no de
+- **Plan sigilo** (2026-10-21, `web/js/sigilo.js`, vista `#/sigilo` enlazada desde Hoy): rutina **propia**, no de
   FuertaFit, para los días sin tiempo: 30:00 justos (calentamiento, 3 asaltos de sombra, fuerza 40/20 × 2 vueltas,
   final a tope, bajar pulsaciones), **en silencio** (el usuario tiene vecinos: cero saltos e impactos; nada de escaladores ni zancadas con paso, los pies no caen al suelo). Temporizador mudo: color, parpadeo
   y vibración opcional; versión con mancuernas (`alt`). Todo en el JS (`PLAN`), sin modelo ni backend: es contenido
@@ -107,3 +107,12 @@ Solo estáticos: recargar el navegador. Web: `/rutifuerta` en el sitio de Odoo.
 Antes era el módulo `fuertafit` (web `/fuerta`). Se renombró a `rutifuerta` (`/rutifuerta`) por decisión del
 usuario. Los modelos siguen siendo `fuerta.*`. El marcador del navegador lleva la URL dentro: tras el cambio hay
 que volver a instalarlo desde la pestaña «Actualizar».
+
+## Invisible sin permiso (2026-11-03, decisión del usuario)
+
+Para quien no tenga `group_fuerta_user` (o no tenga sesión), Rutifuerta **no existe**: todas sus rutas son
+`auth="public"` + `website=True` y lanzan `NotFound` (`_forbidden()`), así la 404 es la misma página del sitio que
+una URL inventada (sin `website=True` Odoo da otra más corta, y `auth="user"` mandaría al login: las dos lo delatan).
+Los archivos están en `web/` (no en `static/`, que Odoo sirve a cualquiera) y los sirve `/rutifuerta/web/<ruta>`
+con permiso; el icono también (`web_icon` y `icon` del manifest). Tests: `tests/test_acceso.py`. No añadas nada en
+`static/` ni rutas sin `_allowed()`.
