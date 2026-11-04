@@ -102,6 +102,30 @@
         zoom.addEventListener("close", () => { img.removeAttribute("src"); });
     }
 
+    // Cuenta atrás al segundo de los eventos con hora exacta (Overwatch Countdown), como la de la wiki
+    const cuentas = [...document.querySelectorAll("[data-countdown]")];
+    if (cuentas.length) {
+        const pintar = () => {
+            const ahora = Date.now();
+            cuentas.forEach((el) => {
+                const resta = Date.parse(el.dataset.countdown) - ahora;
+                const empieza = el.dataset.mode === "start";
+                if (resta <= 0) {
+                    el.textContent = empieza ? "ya ha empezado" : "ha terminado";
+                    return;
+                }
+                const s = Math.floor(resta / 1000);
+                const partes = [[Math.floor(s / 86400), "d"], [Math.floor(s % 86400 / 3600), "h"],
+                    [Math.floor(s % 3600 / 60), "m"], [s % 60, "s"]];
+                const desde = partes.findIndex(([n]) => n > 0);
+                el.textContent = (empieza ? "Empieza en " : "Acaba en ") +
+                    partes.slice(desde < 0 ? 3 : desde).map(([n, u]) => n + u).join(" ");
+            });
+        };
+        pintar();
+        setInterval(pintar, 1000);
+    }
+
     const filtros = document.querySelector(".ow-pass-filters");
     if (!filtros) return;
     filtros.addEventListener("click", (ev) => {

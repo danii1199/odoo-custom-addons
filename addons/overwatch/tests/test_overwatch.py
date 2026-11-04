@@ -460,3 +460,57 @@ class TestEventos(HttpCase):
         pases = self.url_open("/overwatch/pases").text
         self.assertIn("Activo &lt;x&gt;", pases.split("Eventos", 1)[1])
         self.assertNotIn("Pasado", pases.split("Pase actual")[0] if "Pase actual" in pases else pases)
+
+    def test_overwatch_countdown(self):
+        """Los de ahora y los próximos, con hora, de Overwatch Countdown (la cuenta atrás de la portada de la wiki)."""
+        from datetime import datetime, timedelta
+
+        from ..services import countdown, seasons
+        ahora = datetime.utcnow().replace(microsecond=0)
+        iso = lambda d: d.isoformat() + "+00:00"  # noqa: E731
+        datos = [
+            {"id": 323, "title": "Season 9", "tags": "[\"Season\"]", "date": iso(ahora - timedelta(9)), "end_date": iso(ahora + timedelta(30))},
+            {"id": 334, "title": "Junkrat’s Loot Hunt & Double XP Weekend", "tags": "[\"Limited-Time Event\"]",
+             "date": iso(ahora + timedelta(days=15, hours=5, minutes=30)), "end_date": iso(ahora + timedelta(19)),
+             "description": "Junkrat’s Loot Hunt returns!\n\nSource: [Patch Notes](https://example.org/notas)"},
+            {"id": 335, "title": "Excavation Initiative", "tags": "[\"Limited-Time Event\"]",
+             "date": iso(ahora - timedelta(1)), "end_date": iso(ahora + timedelta(34))},
+        ]
+        lista = countdown.convertir(datos)
+        self.assertEqual([e["countdown_id"] for e in lista], [334, 335], "la temporada no es un evento")
+        self.assertEqual(lista[0]["source_url"], "https://example.org/notas")
+        self.assertEqual(lista[0]["description"], "Junkrat’s Loot Hunt returns!")
+
+        E, S = self.env["ow.event"], self.env["ow.season"]
+        E.search([]).unlink()
+        S.search([]).unlink()
+        hoy = date.today()
+        temp = S.create({"key": "t-9", "arc": "Prueba", "number": 9, "date_start": hoy - timedelta(9),
+                         "date_end": hoy + timedelta(30)})
+        # la wiki ya tenía la Excavation Initiative de esta temporada, con fechas supuestas
+        seasons.guardar_eventos(self.env, [{"key": "t-9:Excavation Initiative", "name": "Excavation Initiative",
+                                            "season_key": "t-9", "kind": "event", "date_start": temp.date_start,
+                                            "date_end": temp.date_end, "approx": True, "image_url": "https://example.org/e.png",
+                                            "wiki_page": "Excavation Initiative"}], "b", avisar=False)
+        self.assertEqual(seasons.guardar_countdown(self.env, lista, "b", avisar=True), 1, "solo el de Junkrat es nuevo")
+        exc = E.search([("countdown_id", "=", 335)])
+        self.assertEqual((exc.key, exc.approx, exc.state, exc.image_url), ("t-9:Excavation Initiative", False, "active",
+                                                                         "https://example.org/e.png"))
+        # otra pasada de la wiki no le pisa las fechas
+        seasons.guardar_eventos(self.env, [{"key": "t-9:Excavation Initiative", "name": "Excavation Initiative",
+                                            "season_key": "t-9", "kind": "event", "date_start": temp.date_start,
+                                            "date_end": temp.date_end, "approx": True, "image_url": "",
+                                            "wiki_page": "Excavation Initiative"}], "b", avisar=False)
+        self.assertFalse(exc.approx)
+        self.assertEqual(exc.image_url, "https://example.org/e.png")
+        junk = E.search([("countdown_id", "=", 334)])
+        self.assertEqual((junk.state, junk.season_id, junk.key), ("upcoming", temp, "owc:334"))
+        self.assertTrue(self.env["ow.change"].search([("kind", "=", "event_new"), ("what", "=", junk.name)]))
+
+        r = self.url_open("/overwatch/eventos").text
+        self.assertIn("Junkrat’s Loot Hunt &amp; Double XP Weekend", r)
+        self.assertRegex(r, r'data-countdown="[0-9T:-]+Z" data-mode="start"')
+        self.assertIn("empieza en 15 d 5 h", r)
+        self.assertIn('href="https://example.org/notas"', r)
+        self.assertLess(r.index("Excavation Initiative"), r.index("Por empezar"))
+        self.assertIn("Overwatch Countdown", r)

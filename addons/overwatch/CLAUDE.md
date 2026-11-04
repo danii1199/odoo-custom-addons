@@ -141,6 +141,15 @@ tests/        test_overwatch.py: parser de la wiki, acceso por grupo, páginas y
   y entonces el estado es **«Sin fechas confirmadas»**, nunca «Activo» (Graveyard Games salía activo hasta el 8 de
   diciembre y había acabado el 2 de noviembre). Un evento nuevo = novedad `event_new` (la primera carga no).
   Blizzard solo da las fechas en el texto de sus artículos: no se usa.
+- **Overwatch Countdown** (2026-11-04, 20.0.1.7.0; `services/countdown.py`): el recuadro «Event Countdown» de la
+  portada de la wiki no sale de sus páginas sino de `MediaWiki:Countdown.js`, que lee `owcountdown.com/api/events`
+  (pública, sin clave; `www.` y de respaldo `preview.`). Da lo que está en curso o por empezar con **hora exacta**
+  (UTC), descripción y fuente (notas del parche), sin imágenes ni historial. Se salta la etiqueta «Season» (la
+  temporada ya es el pase). `guardar_countdown` (después de la wiki) actualiza por `countdown_id`, o se une al evento
+  de la wiki con el mismo nombre (`_nombre`) en esa temporada; si no, `owc:<id>`. Con `countdown_id` la wiki solo
+  pone imagen y página, no las fechas. Estado al segundo con `start_at`/`end_at` (el `_search_state` va por días: el
+  controlador reparte con `_eventos`). Web: cuenta atrás en vivo (`data-countdown`, seasons.js), fechas en hora de
+  Madrid. Los «sin fechas confirmadas» ya no salen en la franja de /overwatch/pases, solo en /overwatch/eventos.
 - **Carteles ampliables** (`img.ow-zoomable`: hoja de ruta de cada pase, imagen de cada evento): `<dialog class="ow-zoom">`
   con rueda, doble clic y botones para el zoom (1×–8×, alrededor del puntero) y arrastre para moverse (seasons.js).
 

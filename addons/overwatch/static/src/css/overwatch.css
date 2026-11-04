@@ -574,6 +574,9 @@ img.ow-zoomable:focus-visible { outline: 2px solid var(--ow-orange); outline-off
 .ow-event-dates { color: #dfe7f2; }
 .ow-event-count { color: var(--ow-orange-2); font-weight: 600; }
 .ow-event-links { color: var(--ow-muted); }
+.ow-event-count[data-countdown] { font-variant-numeric: tabular-nums; }
+.ow-event-desc { margin: 2px 0 0; font-size: 13px; color: #b9c6d8; white-space: pre-line;
+    display: -webkit-box; -webkit-line-clamp: 4; -webkit-box-orient: vertical; overflow: hidden; }
 .ow-event-links a { text-decoration: underline; }
 @media (max-width: 760px) {
     .ow-zoom { width: 100vw; height: 100vh; }

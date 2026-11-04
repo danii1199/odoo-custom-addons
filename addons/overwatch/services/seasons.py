@@ -11,11 +11,12 @@ Talon, 6 temporadas). Cada temporada es un apartado «===Season N: Nombre===» c
 Se actualiza por `key` y nunca se borra nada; las recompensas de cada temporada se rehacen (vienen completas)."""
 import re
 import unicodedata
-from datetime import date
+from datetime import date, timezone
+from zoneinfo import ZoneInfo
 
 from odoo import fields
 
-from . import eventos, pases, wiki
+from . import countdown, eventos, pases, wiki
 
 PAGINAS = [("Season/2022-2026", "Overwatch 2", None)]  # (página, etapa, año del arco)
 PRIMER_ARCO = 2026  # desde aquí, una página por año: «Season/<año>»; se para en la primera que no exista
@@ -163,29 +164,75 @@ def _cosmetico(hero, kind, nombre):
     return hero.cosmetic_ids.browse()
 
 
+def _nombre(t):
+    """Nombre comparable entre la wiki y Overwatch Countdown («Junkrat’s Loot Hunt» = «Junkrat's loot hunt»)."""
+    return re.sub(r"[^a-z0-9]+", "", _sin_tildes(t))
+
+
+def _avisar_evento(env, rec, batch):
+    fechas = " – ".join(d.strftime("%d/%m/%Y") for d in (rec.date_start, rec.date_end) if d)
+    env["ow.change"].create({"batch": batch, "kind": "event_new", "season_id": rec.season_id.id,
+                             "what": rec.name, "new_value": fechas + (" (aprox.)" if rec.approx else "")})
+
+
 def guardar_eventos(env, lista, batch, avisar):
-    """Crea o actualiza los eventos (por `key`); con `avisar`, los nuevos quedan en Novedades. Devuelve cuántos nuevos."""
-    Event, Season, Change = env["ow.event"], env["ow.season"], env["ow.change"]
+    """Eventos de la wiki: crea o actualiza (por `key`); con `avisar`, los nuevos quedan en Novedades.
+
+    Si el evento ya llegó de Overwatch Countdown (mismo nombre y temporada), se le añaden la imagen y la página de la
+    wiki, pero sus fechas (exactas, con hora) no se tocan. Devuelve cuántos nuevos."""
+    Event, Season = env["ow.event"], env["ow.season"]
     nuevos = 0
     for ev in lista:
+        season = Season.search([("key", "=", ev["season_key"])], limit=1)
         vals = {"name": ev["name"], "kind": ev["kind"], "date_start": ev["date_start"] or False,
                 "date_end": ev["date_end"] or False, "approx": ev["approx"], "image_url": ev["image_url"] or False,
-                "wiki_page": ev["wiki_page"],
-                "season_id": Season.search([("key", "=", ev["season_key"])], limit=1).id or False}
-        rec = Event.search([("key", "=", ev["key"])], limit=1)
-        if rec:
+                "wiki_page": ev["wiki_page"], "season_id": season.id or False}
+        rec = Event.search([("key", "=", ev["key"])], limit=1) or Event.search(
+            [("countdown_id", "!=", False), ("season_id", "=", season.id)]).filtered(
+            lambda e: _nombre(e.name) == _nombre(ev["name"]))[:1]
+        if rec.countdown_id:
+            rec.write({"key": ev["key"], "wiki_page": ev["wiki_page"], "image_url": ev["image_url"] or rec.image_url})
+        elif rec:
             rec.write(vals)
-            continue
-        rec = Event.create({**vals, "key": ev["key"]})
-        nuevos += 1
-        if avisar:
-            fechas = " – ".join(d.strftime("%d/%m/%Y") for d in (rec.date_start, rec.date_end) if d)
-            Change.create({"batch": batch, "kind": "event_new", "season_id": rec.season_id.id,
-                           "what": rec.name, "new_value": fechas + (" (aprox.)" if rec.approx else "")})
+        else:
+            rec = Event.create({**vals, "key": ev["key"]})
+            nuevos += 1
+            if avisar:
+                _avisar_evento(env, rec, batch)
     return nuevos
 
 
-def guardar(env, temporadas, batch=None, items=None, session=None, events=None):
+def _dia(dt):
+    """Datetime UTC sin zona → día en Madrid."""
+    return dt.replace(tzinfo=timezone.utc).astimezone(ZoneInfo("Europe/Madrid")).date() if dt else False
+
+
+def guardar_countdown(env, lista, batch, avisar):
+    """Eventos de Overwatch Countdown (countdown.py): actualiza por `countdown_id`; si no, se une al de la wiki con el
+    mismo nombre en esa temporada; si tampoco, lo crea («owc:<id>»). Sus fechas mandan. Devuelve cuántos nuevos."""
+    Event, Season = env["ow.event"], env["ow.season"]
+    nuevos = 0
+    for ev in lista:
+        inicio = _dia(ev["start_at"])
+        season = Season.search([("date_start", "<=", inicio)], order="date_start desc", limit=1) if inicio else Season
+        vals = {"countdown_id": ev["countdown_id"], "name": ev["name"], "kind": ev["kind"], "tags": ev["tags"] or False,
+                "start_at": ev["start_at"] or False, "end_at": ev["end_at"] or False, "date_start": inicio,
+                "date_end": _dia(ev["end_at"]), "approx": False, "description": ev["description"] or False,
+                "source_url": ev["source_url"] or False}
+        rec = Event.search([("countdown_id", "=", ev["countdown_id"])], limit=1) or Event.search(
+            [("countdown_id", "=", False), ("season_id", "=", season.id)]).filtered(
+            lambda e: _nombre(e.name) == _nombre(ev["name"]))[:1]
+        if rec:
+            rec.write(vals)
+            continue
+        rec = Event.create({**vals, "key": f"owc:{ev['countdown_id']}", "season_id": season.id or False})
+        nuevos += 1
+        if avisar:
+            _avisar_evento(env, rec, batch)
+    return nuevos
+
+
+def guardar(env, temporadas, batch=None, items=None, session=None, events=None, countdown_events=None):
     """Crea o actualiza las temporadas (por `key`). Devuelve {"new", "updated", "changes"}.
 
     Con temporadas ya cargadas, apunta en Novedades (ow.change, con `batch`) los pases nuevos y los míticos que
@@ -285,6 +332,11 @@ def guardar(env, temporadas, batch=None, items=None, session=None, events=None):
         n = guardar_eventos(env, events, batch, avisar=habia_eventos)
         cambios += n if habia_eventos else 0
         s["events"] = n
+    if countdown_events is not None:  # después de la wiki: así sus fechas son las que quedan
+        habia_owc = bool(env["ow.event"].search_count([("countdown_id", "!=", False)]))
+        n = guardar_countdown(env, countdown_events, batch, avisar=habia_owc)
+        cambios += n if habia_owc else 0
+        s["countdown"] = n
     s["changes"] = cambios
     return s
 
@@ -293,4 +345,4 @@ def importar(env, session=None, batch=None):
     session = session or wiki.nueva_sesion()
     temporadas = descargar(session)
     return guardar(env, temporadas, batch, items=pases.descargar(session, temporadas), session=session,
-                   events=eventos.descargar(session, temporadas))
+                   events=eventos.descargar(session, temporadas), countdown_events=countdown.descargar())

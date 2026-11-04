@@ -3,6 +3,8 @@ cada héroe. Pública (decisión del usuario, 2026-11-03): cualquiera, también 
 el grupo overwatch.group_ow_user marcan favoritos (si no, no salen los botones). El backend queda para editar el
 catálogo. Los datos van en un JSON dentro de la página."""
 import json
+from datetime import date, datetime, timezone
+from zoneinfo import ZoneInfo
 from pathlib import Path
 
 from markupsafe import Markup
@@ -12,6 +14,7 @@ from odoo.http import request
 
 from ..models.cosmetic import RARITIES, TYPES
 from ..models.hero import ROLES
+from ..services import countdown
 
 STATIC_DIR = Path(__file__).resolve().parent.parent / "static" / "src"
 # Odoo cachea los estáticos una semana: la versión (fecha del archivo más nuevo) fuerza a recargarlos tras cambiarlos.
@@ -38,11 +41,32 @@ def _cosmetic_link(c):
     return f"/overwatch/heroe/{c.hero_id.key}#{SLUGS.get(c.type, 'aspectos')}/{c.id}" if c else ""
 
 
+def _eventos(Event, pasados=0):
+    """{estado: [evento]} con el estado exacto (los de Overwatch Countdown cambian a una hora, no al empezar el día),
+    en el orden de su cuenta atrás: los activos por cuándo acaban, los próximos por cuándo empiezan."""
+    vivos = Event.search([("state", "in", ["active", "upcoming", "unconfirmed"])])
+    res = {k: vivos.filtered(lambda e, k=k: e.state == k) for k in ("active", "upcoming", "unconfirmed", "past")}
+    if pasados:
+        res["past"] = (res["past"] | Event.search([("state", "=", "past")], order="date_end desc", limit=pasados)) \
+            .sorted(lambda e: fields.Datetime.to_datetime(e.end_at or e.date_end) or datetime.min, reverse=True)
+    clave = {"active": lambda e: (e.end_at or fields.Datetime.to_datetime(e.date_end) or datetime.max),
+             "upcoming": lambda e: (e.start_at or fields.Datetime.to_datetime(e.date_start) or datetime.max),
+             "unconfirmed": lambda e: (e.date_start or date.min)}
+    return {k: [_evento(e) for e in (v.sorted(clave[k]) if k in clave else v)] for k, v in res.items()}
+
+
 def _evento(e):
-    """Datos de un evento para las plantillas (fechas en español y días que faltan o quedan)."""
+    """Datos de un evento para las plantillas (fechas en español y días que faltan o quedan). Con hora exacta (Overwatch
+    Countdown) lleva `cuenta_iso` y `cuenta_modo`: seasons.js pone la cuenta atrás al segundo, como en la wiki."""
     hoy = fields.Date.context_today(e)
     fmt = lambda d: f"{d.day} de {MESES_ES[d.month - 1]}" if d else "?"  # noqa: E731
-    if e.state == "upcoming" and e.date_start:
+    objetivo = e.start_at if e.state == "upcoming" else e.end_at if e.state == "active" else None
+    if objetivo:
+        resta = objetivo - fields.Datetime.now()
+        horas = resta.seconds // 3600
+        cuenta = ("empieza en " if e.state == "upcoming" else "acaba en ") + (
+            f"{resta.days} d {horas} h" if resta.days else f"{horas} h {resta.seconds % 3600 // 60} min")
+    elif e.state == "upcoming" and e.date_start:
         cuenta = (e.date_start - hoy).days
         cuenta = "empieza mañana" if cuenta == 1 else f"empieza en {cuenta} días"
     elif e.state == "active" and e.date_end:
@@ -52,11 +76,22 @@ def _evento(e):
         cuenta = ""
     imagen = (f"/web/image/ow.event/{e.id}/image?unique={int(e.write_date.timestamp())}" if e.image
               else e.image_url or "")
-    return {"rec": e, "imagen": imagen, "fechas": f"{fmt(e.date_start)} – {fmt(e.date_end)}", "cuenta": cuenta,
+    if e.start_at or e.end_at:  # con hora: en la de Madrid, como el resto del sitio
+        local = lambda d: d.replace(tzinfo=timezone.utc).astimezone(MADRID) if d else None  # noqa: E731
+        fmt_h = lambda d: f"{fmt(d)}, {d:%H:%M}" if d else "?"  # noqa: E731
+        fechas = f"{fmt_h(local(e.start_at))} – {fmt_h(local(e.end_at))}"
+    else:
+        fechas = f"{fmt(e.date_start)} – {fmt(e.date_end)}"
+    return {"rec": e, "imagen": imagen, "fechas": fechas, "cuenta": cuenta,
             "tipo": dict(e._fields["kind"].selection).get(e.kind), "season_key": e.season_id.key or "",
-            "wiki": f"https://overwatch.weirdgloop.org/w/{(e.wiki_page or e.name).replace(' ', '_')}"}
+            "wiki": f"https://overwatch.weirdgloop.org/w/{e.wiki_page.replace(' ', '_')}" if e.wiki_page else "",
+            "cuenta_iso": objetivo.isoformat() + "Z" if objetivo else "",
+            "cuenta_modo": "start" if e.state == "upcoming" else "end",
+            "etiquetas": e.tags or "", "descripcion": e.description or "", "fuente": e.source_url or "",
+            "countdown": countdown.WEB if e.countdown_id else ""}
 
 
+MADRID = ZoneInfo("Europe/Madrid")
 MESES_ES = ["enero", "febrero", "marzo", "abril", "mayo", "junio", "julio", "agosto", "septiembre", "octubre",
             "noviembre", "diciembre"]
 
@@ -147,12 +182,10 @@ class OverwatchWeb(http.Controller):
                             for r in t.reward_ids],
                 "item_count": t.item_count,
             }
-        Event = env["ow.event"]
+        ev = _eventos(env["ow.event"])
         return request.render("overwatch.seasons_page", {
             "v": VERSION, "data": _json_script({}),
-            "eventos_activos": [_evento(e) for e in Event.search([("state", "=", "active")], order="date_end, date_start")],
-            "eventos_proximos": [_evento(e) for e in Event.search([("state", "=", "upcoming")], order="date_start")],
-            "eventos_sin_fechas": [_evento(e) for e in Event.search([("state", "=", "unconfirmed")], order="date_start")],
+            "eventos_activos": ev["active"], "eventos_proximos": ev["upcoming"], "eventos_sin_fechas": ev["unconfirmed"],
             "actual": ficha(actual) if actual else None,
             "proximas": [ficha(t) for t in temporadas if t.state == "upcoming"],
             "anteriores": [ficha(t) for t in temporadas if t.state == "past"],
@@ -195,13 +228,10 @@ class OverwatchWeb(http.Controller):
     @http.route("/overwatch/eventos", type="http", auth="public", methods=["GET"], website=True)
     def events(self, **kw):
         """Eventos y colaboraciones: activos, por empezar y los terminados de las temporadas recientes."""
-        Event = request.env(context=dict(request.env.context, bin_size=True))["ow.event"]
+        ev = _eventos(request.env(context=dict(request.env.context, bin_size=True))["ow.event"], pasados=40)
         return request.render("overwatch.events_page", {
             "v": VERSION, "data": _json_script({}),
-            "activos": [_evento(e) for e in Event.search([("state", "=", "active")], order="date_end, date_start")],
-            "proximos": [_evento(e) for e in Event.search([("state", "=", "upcoming")], order="date_start")],
-            "sin_fechas": [_evento(e) for e in Event.search([("state", "=", "unconfirmed")], order="date_start")],
-            "pasados": [_evento(e) for e in Event.search([("state", "=", "past")], order="date_end desc", limit=40)],
+            "activos": ev["active"], "proximos": ev["upcoming"], "sin_fechas": ev["unconfirmed"], "pasados": ev["past"],
             "is_manager": request.env.user.has_group("overwatch.group_ow_manager"),
         })
 

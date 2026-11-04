@@ -255,7 +255,7 @@
                 </nav>
             </header>
             <main class="ow-seasons-main">
-                <section t-if="eventos_activos or eventos_proximos or eventos_sin_fechas" class="ow-events-strip">
+                <section t-if="eventos_activos or eventos_proximos" class="ow-events-strip">
                     <div class="ow-events-head">
                         <h1 class="ow-h1">Eventos</h1>
                         <a class="ow-link" href="/overwatch/eventos">Todos los eventos ›</a>
@@ -263,8 +263,9 @@
                     <div class="ow-event-list">
                         <t t-foreach="eventos_activos" t-as="e"><t t-call="overwatch.event_card" e="e"/></t>
                         <t t-foreach="eventos_proximos" t-as="e"><t t-call="overwatch.event_card" e="e"/></t>
-                        <t t-foreach="eventos_sin_fechas" t-as="e"><t t-call="overwatch.event_card" e="e"/></t>
                     </div>
+                    <p t-if="eventos_sin_fechas" class="ow-muted">Y <t t-out="len(eventos_sin_fechas)"/> de esta temporada sin
+                        fechas confirmadas, en <a href="/overwatch/eventos">todos los eventos</a>.</p>
                 </section>
                 <section t-if="actual">
                     <h1 class="ow-h1">Pase actual</h1>
@@ -440,7 +441,7 @@
     <!-- ================= Eventos ================= -->
     <template id="event_card" name="Overwatch: tarjeta de evento">
         <article t-attf-class="ow-event ow-event-#{e['rec'].state}">
-            <div class="ow-event-img">
+            <div t-if="e['imagen'] or not e['rec'].countdown_id" class="ow-event-img">
                 <img t-if="e['imagen']" t-att-src="e['imagen']" t-att-alt="e['rec'].name" loading="lazy" onerror="this.remove()"
                      class="ow-zoomable" title="Ampliar" tabindex="0"/>
             </div>
@@ -450,10 +451,13 @@
                 <p t-if="e['rec'].approx" class="ow-event-dates">Durante <t t-out="'la temporada' if e['season_key'] else 'su temporada'"/>
                     (<t t-out="e['fechas']"/>): la wiki no da sus fechas exactas</p>
                 <p t-else="" class="ow-event-dates" t-out="e['fechas']"/>
-                <p t-if="e['cuenta']" class="ow-event-count" t-out="e['cuenta']"/>
-                <p class="ow-event-links"><span t-out="e['tipo']"/>
+                <p t-if="e['cuenta']" class="ow-event-count" t-att-data-countdown="e['cuenta_iso'] or None"
+                   t-att-data-mode="e['cuenta_modo'] if e['cuenta_iso'] else None" t-out="e['cuenta']"/>
+                <p t-if="e['descripcion']" class="ow-event-desc" t-out="e['descripcion']"/>
+                <p class="ow-event-links"><span t-out="e['etiquetas'] or e['tipo']"/>
                     <t t-if="e['season_key']"> · <a t-att-href="'/overwatch/pases/%s' % e['season_key']">su pase</a></t>
-                    · <a t-att-href="e['wiki']" target="_blank" rel="noopener">en la wiki</a></p>
+                    <t t-if="e['wiki']"> · <a t-att-href="e['wiki']" target="_blank" rel="noopener">en la wiki</a></t>
+                    <t t-if="e['fuente']"> · <a t-att-href="e['fuente']" target="_blank" rel="noopener">Blizzard</a></t></p>
             </div>
         </article>
     </template>
@@ -496,7 +500,9 @@
                         <button type="button" class="ow-btn" data-close="">Cerrar</button>
                     </div>
                 </dialog>
-                <p class="ow-muted ow-seasons-source">Eventos y fechas de la <a href="https://overwatch.weirdgloop.org/w/Season" target="_blank" rel="noopener">Overwatch Wiki</a>
+                <p class="ow-muted ow-seasons-source">Eventos en curso y próximos, con hora exacta, de
+                    <a href="https://www.owcountdown.com" target="_blank" rel="noopener">Overwatch Countdown</a> (la cuenta atrás de la
+                    portada de la wiki); historial e imágenes de la <a href="https://overwatch.weirdgloop.org/w/Season" target="_blank" rel="noopener">Overwatch Wiki</a>
                     (Weird Gloop, <a href="https://creativecommons.org/licenses/by-sa/3.0/" target="_blank" rel="noopener">CC BY-SA</a>).
                     Se comprueba cada día.</p>
             </main>

@@ -167,8 +167,14 @@
                 <field name="season_id"/>
                 <field name="date_start"/>
                 <field name="date_end"/>
+                <field name="start_at" optional="show"/>
+                <field name="end_at" optional="show"/>
                 <field name="approx"/>
                 <field name="state"/>
+                <field name="tags" optional="show"/>
+                <field name="countdown_id" optional="hide"/>
+                <field name="description" optional="hide"/>
+                <field name="source_url" widget="url" optional="hide"/>
                 <field name="image_url" widget="url" optional="hide"/>
                 <field name="wiki_page" optional="hide"/>
             </list>
@@ -184,6 +190,7 @@
                 <field name="season_id"/>
                 <filter name="activos" string="Activos" domain="[('state', '=', 'active')]"/>
                 <filter name="proximos" string="Por empezar" domain="[('state', '=', 'upcoming')]"/>
+                <filter name="countdown" string="De Overwatch Countdown" domain="[('countdown_id', '!=', False)]"/>
                 <group>
                     <filter name="by_season" string="Temporada" context="{'group_by': 'season_id'}"/>
                 </group>

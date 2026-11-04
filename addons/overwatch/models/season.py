@@ -83,12 +83,14 @@ class OwSeason(models.Model):
 
 
 class OwEvent(models.Model):
-    """Evento de tiempo limitado o colaboración de una temporada (services/eventos.py)."""
+    """Evento de tiempo limitado o colaboración: de la wiki (services/eventos.py, historial e imágenes) y de
+    Overwatch Countdown (services/countdown.py: los de ahora y los próximos, con hora exacta)."""
     _name = "ow.event"
     _description = "Evento de Overwatch"
     _order = "date_start desc, id desc"
 
-    key = fields.Char("Clave", required=True, index=True, help="«<temporada>:<página de la wiki>».")
+    key = fields.Char("Clave", required=True, index=True,
+                      help="«<temporada>:<página de la wiki>» o «owc:<id>» si solo está en Overwatch Countdown.")
     name = fields.Char("Nombre", required=True)
     season_id = fields.Many2one("ow.season", "Temporada", ondelete="cascade", index=True)
     kind = fields.Selection([("event", "Evento"), ("collab", "Colaboración")], "Tipo", default="event", required=True)
@@ -98,6 +100,13 @@ class OwEvent(models.Model):
     image_url = fields.Char("Imagen")
     image = fields.Image("Imagen propia", max_width=1024, max_height=1024)
     wiki_page = fields.Char("Página de la wiki")
+    countdown_id = fields.Integer("Id en Overwatch Countdown", index=True,
+                                  help="Con él, las fechas son las de Overwatch Countdown (con hora) y la wiki no las toca.")
+    start_at = fields.Datetime("Empieza (hora)")
+    end_at = fields.Datetime("Termina (hora)")
+    description = fields.Text("Descripción")
+    source_url = fields.Char("Fuente", help="Notas del parche o noticia de Blizzard que cita Overwatch Countdown.")
+    tags = fields.Char("Etiquetas", help="De Overwatch Countdown: Limited-Time Event, Twitch Drops, Competitive Drives…")
     state = fields.Selection([("active", "Activo"), ("upcoming", "Por empezar"), ("unconfirmed", "Sin fechas confirmadas"),
                               ("past", "Terminado")], "Estado", compute="_compute_state", search="_search_state",
                              help="«Sin fechas confirmadas»: la wiki no da sus fechas y su temporada sigue en curso "
@@ -107,8 +116,12 @@ class OwEvent(models.Model):
 
     def _compute_state(self):
         hoy = fields.Date.context_today(self)
+        ahora = fields.Datetime.now()
         for e in self:
-            if e.date_start and e.date_start > hoy:
+            if e.start_at or e.end_at:  # hora exacta (Overwatch Countdown)
+                e.state = ("upcoming" if e.start_at and e.start_at > ahora
+                           else "past" if e.end_at and e.end_at < ahora else "active")
+            elif e.date_start and e.date_start > hoy:
                 e.state = "upcoming"
             elif e.date_end and e.date_end < hoy:
                 e.state = "past"
@@ -116,7 +129,8 @@ class OwEvent(models.Model):
                 e.state = "unconfirmed" if e.approx else "active"
 
     def _search_state(self, operator, value):
-        """Buscar por estado («=» o «in»): se traduce a fechas respecto a hoy."""
+        """Buscar por estado («=» o «in»): se traduce a fechas respecto a hoy (el día en que empieza o acaba uno
+        con hora puede dar los dos estados: el controlador lo afina con `state`)."""
         if operator not in ("=", "in"):
             return NotImplemented
         hoy = fields.Date.context_today(self)
