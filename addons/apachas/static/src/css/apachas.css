@@ -48,7 +48,8 @@ a.gs-card:hover { border-color: var(--gs-verde); }
 .gs-emoji-sm { font-size: 1.3rem; width: 1.8rem; text-align: center; flex: none; }
 .gs-grupo-body, .gs-mov-body { flex: 1; min-width: 0; display: flex; flex-direction: column; }
 .gs-grupo-body small, .gs-mov-body small, .gs-mov-imp small { color: var(--gs-gris); font-size: .8rem; }
-.gs-mov-body strong { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+/* El concepto ocupa hasta dos líneas antes de cortarse: en un móvil estrecho una sola se queda en tres palabras. */
+.gs-mov-body strong { overflow: hidden; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; overflow-wrap: anywhere; }
 
 .gs-saldo { font-weight: 700; font-size: .9rem; white-space: nowrap; }
 .gs-pos { color: var(--gs-verde) !important; }
@@ -150,6 +151,24 @@ a.gs-card:hover { border-color: var(--gs-verde); }
 .gs-form .gs-persona-nombre { font-weight: 500; color: var(--gs-gris); }
 .gs-persona-nombre[hidden] { display: none; }
 
+/* Móviles estrechos (320–420 px, p. ej. Android antiguos): menos márgenes, letra pequeña algo mayor y botones
+   que se puedan pulsar con el dedo. */
 @media (max-width: 420px) {
+    .gs-app { padding: 10px 8px 56px; }
+    .gs-card { padding: 10px 10px; border-radius: 12px; }
+    .gs-head { flex-wrap: wrap; gap: 8px; }
+    .gs-app h1 { font-size: 1.35rem; }
+    .gs-grupo, .gs-titulo, .gs-mov summary { gap: 8px; }
+    .gs-emoji-sm { width: 1.5rem; font-size: 1.2rem; }
+    .gs-grupo-body small, .gs-mov-body small, .gs-mov-imp small, .gs-historial, .gs-ayuda { font-size: .875rem; }
+    .gs-back { padding: 8px 0; }
+    .gs-btn { min-height: 44px; }
+    .gs-btn-sm { min-height: 38px; padding: 6px 12px; }
+    .gs-reparto, .gs-historial { padding-left: 0; margin-left: 0; }
+    .gs-mov form { margin-left: 0; }
+    .gs-resumen .gs-saldo, .gs-resumen strong { font-size: 1.1rem; }
     .gs-miembro { grid-template-columns: 1fr 4.5rem 4.8rem; }
+}
+@media (max-width: 360px) {
+    .gs-2col { grid-template-columns: 1fr; gap: 0; }  /* importe y fecha, uno debajo del otro */
 }

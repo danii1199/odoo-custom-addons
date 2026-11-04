@@ -21,6 +21,7 @@ models/       grupo.py (gastos.grupo + simplificar_deudas, saldos, correos, webh
               invitar al portal), gasto.py (gastos.gasto + gastos.gasto.linea, repartir()), liquidacion.py (pagos +
               gastos.liquidacion.historial), splitwise.py (CSV de Splitwise: leer_csv/movimientos, exportar/importar
               en gastos.grupo, splitwise_ref en gastos y pagos, asistente gastos.importar.splitwise del backend)
+              res_users.py (casilla «Web de Apachas» en el formulario del usuario)
 controllers/  main.py: /apachas, /apachas/nuevo-grupo, /apachas/<id>, /apachas/<id>/ajustes (GET/POST),
               /apachas/<id>/archivar, /apachas/<id>/miembros/nuevo, /apachas/<id>/miembros/<mid>/<invitar|correo|archivar|
               activar|quitar>, /apachas/<id>/nuevo, /apachas/<id>/gasto/<gid> (editar), /apachas/<id>/pago/<pid> (editar), /apachas/<id>/saldar,
@@ -57,7 +58,11 @@ tests/        test_gastos.py: reparto, deudas, correos, permisos de portal y la 
   grupos (dominio `member_ids.user_id = user`), lee sus miembros y hace de todo con los gastos y pagos de sus grupos
   (también los que apuntaron otros, como en el backend). Sin él, ni menú ni web (`_acceso()` → 404) ni datos.
   `gastos.miembro._dar_acceso_web()` se lo da al crear un miembro con usuario, al cambiarle el contacto y al
-  invitarlo (`action_invitar`). Quitárselo: en el usuario (Ajustes → Usuarios, modo desarrollador → grupos).
+  invitarlo (`action_invitar`). Quitárselo: casilla «Web de Apachas» en Ajustes → Usuarios → (usuario) →
+  Permisos de acceso (`models/res_users.py`, campo calculado `apachas_web` con inverse, sin columna; solo la ve el
+  administrador de Apachas; de solo lectura si tiene «Apachas: Usuario», que ya la incluye). Hace falta porque Odoo 20
+  oculta el bloque de permisos a los usuarios de portal fuera del modo desarrollador. Volver a invitarle se la devuelve.
+  A un usuario de portal no se le puede dar «Apachas: Usuario»: implica usuario interno y Odoo da error de grupos exclusivos.
 - Usuario del módulo: lo mismo en sus grupos (miembro o creador) y crea grupos. Administrador: todo.
 - La web no usa sudo salvo: crear un grupo (con su creador como primer miembro) y crear/cambiar miembros y sus
   contactos. Siempre después de `_gestionable()` (= `check_access("write")` sobre el grupo; si no, 404). Al añadir
@@ -117,3 +122,10 @@ Pruebas: skill `probar-cambios`. Solo CSS/JS: reiniciar Odoo (cambia el `?v=`) y
 Antes era el módulo `gastos` (web `/gastos`). Se renombró a `apachas` (`/apachas`) por decisión del usuario, para
 que el nombre no diga qué es. Los modelos siguen siendo `gastos.*` (no se ven desde fuera). La base real se migró
 por SQL (`ir_module_module`, `ir_model_data`, claves de vistas, `website_menu`, cron) y luego `-u`.
+
+## Móvil (2026-11-04)
+
+- Probado a 320–340 px y con letra grande (Toñi usa Samsung Internet en un Android antiguo). `@media (max-width: 420px)`:
+  menos márgenes, letra pequeña a 14 px, botones de 38–44 px de alto, conceptos en hasta 2 líneas
+  (`-webkit-line-clamp`) en vez de cortarse en una. Por debajo de 360 px, `.gs-2col` pasa a una columna.
+- El `color-scheme` del sitio lo pone `inicio_web` (`portada.js`), según el fondo del tema.

@@ -100,6 +100,14 @@ class TestGastos(TransactionCase):
         self.assertTrue(user and user._is_portal())
         self.assertEqual(self.m["Ana"].user_id, user)
         self.assertTrue(user.has_group("apachas.group_gastos_web"), "invitar da el permiso de la web")
+        # La casilla «Web de Apachas» del formulario del usuario lo refleja, lo quita y lo devuelve
+        self.assertTrue(user.apachas_web)
+        self.assertFalse(user.apachas_interno)
+        user.apachas_web = False
+        self.assertFalse(user.has_group("apachas.group_gastos_web"))
+        self.assertTrue(user._is_portal(), "quitar la web no le cambia el tipo de usuario")
+        user.apachas_web = True
+        self.assertTrue(user.has_group("apachas.group_gastos_web"))
         ajeno = self.env["gastos.grupo"].create({"name": "Ajeno", "member_ids": [(0, 0, {"partner_id": self.bea.id})]})
         Grupo = self.env["gastos.grupo"].with_user(user)
         self.assertEqual(Grupo.search([]), self.grupo)

@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Casilla «Web de Apachas» en Ajustes → Usuarios → (usuario) → Permisos de acceso. Se ve también en usuarios de
+     portal, a los que Odoo 20 oculta el bloque de permisos fuera del modo desarrollador. -->
+<odoo>
+    <record id="view_users_form_apachas" model="ir.ui.view">
+        <field name="name">res.users.form.apachas</field>
+        <field name="model">res.users</field>
+        <field name="inherit_id" ref="base.view_users_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//page[@name='access_rights']/group[1]" position="after">
+                <group string="Apachas" groups="apachas.group_gastos_manager">
+                    <field name="apachas_interno" invisible="1"/>
+                    <field name="apachas_web" readonly="apachas_interno"/>
+                </group>
+            </xpath>
+        </field>
+    </record>
+</odoo>
