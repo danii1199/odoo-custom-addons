@@ -33,6 +33,17 @@ function toggle(list, v) { const i = list.indexOf(v); i >= 0 ? list.splice(i, 1)
 let META = null;
 let DEFAULT_MIN = 30;  // duración por defecto (ajustes del servidor), editable en la cabecera
 
+/* Insignia de prioridad (viene del servidor en los bloques del plan): 0 = siempre, 1 = la más importante. */
+function priorityBadge(b) {
+  if (b.priority === undefined) return "";
+  return b.priority === 0
+    ? `<span class="prio always" title="El calentamiento no se recorta">Siempre</span>`
+    : `<span class="prio p${Math.min(b.priority, 4)}" title="Si no te da tiempo a todo, recorta desde la de número más alto">Prioridad ${b.priority}</span>`;
+}
+/* Explicación que acompaña a un plan con prioridades. */
+const PRIORITY_HINT = `<p class="muted prio-hint">¿Vas justo de tiempo? Hazlas en este orden, pero si no llegas a todo,
+  deja fuera primero la de número de prioridad más alto.</p>`;
+
 /* Tarjeta de rutina reutilizable. opts: {done, onCheck, extra (html de botones), numbered} */
 function blockCard(b, i, opts = {}) {
   const tags = [b.group, b.trainingType, ...(b.materials || [])].filter(Boolean);
@@ -41,7 +52,7 @@ function blockCard(b, i, opts = {}) {
     <img src="${esc(b.previewImage)}" alt="" loading="lazy">
     <div class="info">
       <div class="head">
-        <div class="t">${opts.numbered ? (i + 1) + ". " : ""}${esc(b.title)}</div>
+        <div class="t">${opts.numbered ? (i + 1) + ". " : ""}${esc(b.title)} ${priorityBadge(b)}</div>
         ${opts.onCheck ? `<button class="check${opts.done ? " on" : ""}" onclick="${opts.onCheck}" title="${opts.done ? "Desmarcar" : "Marcar como hecha"}" aria-pressed="${!!opts.done}">✓</button>` : ""}
       </div>
       <div class="m">${b.durationMinutes} min${b.format ? " · " + esc(b.format) : ""} · ${esc(INTENSITY_LABEL[b.intensity] || b.intensity || "")}${b.trainers?.length ? " · " + esc(b.trainers.join(", ")) : ""}</div>

@@ -1,4 +1,5 @@
 """Presentación de los datos del modelo como JSON para el navegador."""
+from ..services import priority
 
 
 def routine(it):
@@ -22,10 +23,13 @@ def calendar(by_id, plans, status, history):
     out = {}
     for day in sorted(set(plans) | set(done) | set(status)):
         p = plans.get(day, {})
+        blocks = [routine(by_id[i]) for i in p.get("postIds", []) if i in by_id]
+        for b, n in zip(blocks, priority.rank(blocks)):
+            b["priority"] = n  # 0 = siempre (calentamiento), 1 = la más importante si no da tiempo a todo
         out[day] = {
             "note": p.get("note"),
             "source": p.get("source"),
-            "blocks": [routine(by_id[i]) for i in p.get("postIds", []) if i in by_id],
+            "blocks": blocks,
             "done": done.get(day, []),
             "status": status.get(day, {}).get("status"),
             "statusNote": status.get(day, {}).get("note"),

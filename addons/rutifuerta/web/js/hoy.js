@@ -109,6 +109,7 @@ const Hoy = (() => {
         <span class="badge">${doneCount}/${d.blocks.length} hechas · ${mins} min</span>
       </div>
       ${d.note ? `<p class="muted" style="margin-top:-6px">${esc(d.note)}${d.source === "bot" ? " · por tu entrenador" : ""}</p>` : ""}
+      ${d.blocks.length > 1 ? PRIORITY_HINT : ""}
       <div class="blocks">${all.map((b, i) => blockCard(b, i, {
         numbered: i < d.blocks.length, done: d.done.includes(b.id), onCheck: `Hoy.check(${b.id})`,
         note: i >= d.blocks.length ? "Hecha hoy fuera del plan" : "" })).join("")}</div>`;

@@ -33,18 +33,26 @@ RAW_FIELDS = ["id", "title", "url", "durationMinutes", "format", "intensity", "l
 POST_URL = "https://webapp.fuertafit.com/#/post/"
 
 
+CARDIO_TYPE = "Cardiovascular"
+# Tipos de FuertaFit que cuentan como fuerza: «Cardio-Fuerza», «Combinación de fuerza y cardio»… son «Mixto».
+STRENGTH_TYPES = {"Fuerza", "Mixto"}
+
+
 def _group(it):
     head = " ".join([it["title"], it.get("summary") or "", it.get("methodology") or "", *(it.get("tags") or [])])
+    # «Cardio» solo si FuertaFit no dice que es fuerza: los Cardio-Fuerza (Mixto) van con la fuerza (2026-11-04,
+    # «Entrenamiento híbrido 10» ocupaba el hueco de cardio de un día de Torso + Cardio).
+    rules = [(n, rx) for n, rx in GROUP_RULES if n != "Cardio" or it.get("trainingType") not in STRENGTH_TYPES]
     # El título manda: algún resumen de FuertaFit está mal («Tren superior 3» dice «tren inferior»).
     for text in (it["title"], head):
-        for name, rx in GROUP_RULES:
+        for name, rx in rules:
             if re.search(rx, text, re.IGNORECASE):
                 return name
     # En la descripción larga "calentamiento" o "estiramientos" suelen ser parte de la sesión, no su tema.
-    for name, rx in GROUP_RULES[2:]:
+    for name, rx in rules[2:]:
         if re.search(rx, it.get("description") or "", re.IGNORECASE):
             return name
-    return {"Cardiovascular": "Cardio", "Cuerpo-Mente": "Cuerpo-Mente",
+    return {CARDIO_TYPE: "Cardio", "Cuerpo-Mente": "Cuerpo-Mente",
             "Calentamiento": "Calentamiento"}.get(it.get("trainingType"), "Fullbody")
 
 

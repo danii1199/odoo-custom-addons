@@ -3,7 +3,7 @@ from datetime import timedelta
 
 from odoo import api, fields, models
 
-from ..services import catalog, planner
+from ..services import catalog, planner, priority
 from ..services.dates import today
 
 
@@ -24,6 +24,17 @@ class FuertaPlan(models.Model):
                               "Origen", default="manual")
     url = fields.Char(related="routine_id.url", string="Vídeo")
     done = fields.Boolean("Hecha", compute="_compute_done")
+    priority = fields.Integer("Prioridad", compute="_compute_priority",
+                              help="Si no da tiempo a todo, recorta desde el número más alto. 0 = siempre (calentamiento).")
+
+    def _compute_priority(self):
+        by_id = catalog.get(self.env).by_id
+        for user, day in {(r.user_id, r.day) for r in self}:
+            lines = self.search([("user_id", "=", user.id), ("day", "=", day)])  # el día entero, aunque se vea parte
+            known = lines.filtered(lambda l: l.fuerta_id in by_id)
+            ranks = dict(zip(known.ids, priority.rank([by_id[l.fuerta_id] for l in known])))
+            for rec in self.filtered(lambda r: r.user_id == user and r.day == day):
+                rec.priority = ranks.get(rec.id, 0)
 
     def _compute_done(self):
         history = self.env["fuerta.history"].search([("user_id", "in", self.user_id.ids),

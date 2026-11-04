@@ -185,3 +185,11 @@
 .fuerta-app .sg-it { display: flex; justify-content: space-between; gap: 8px; }
 .fuerta-app .sg-it span { color: var(--muted); font-size: 13px; white-space: nowrap; }
 @media (max-width: 600px) { .fuerta-app .sg-clock { font-size: 56px; } }
+
+/* Prioridad de cada rutina del día (si no da tiempo a todo). */
+.fuerta-app .prio { display: inline-block; vertical-align: middle; font-size: 11px; font-weight: 700; border-radius: 999px;
+  padding: 1px 8px; margin-left: 4px; white-space: nowrap; background: #383838; color: #bbb; }
+.fuerta-app .prio.p1 { background: var(--accent); color: var(--accent-ink); }
+.fuerta-app .prio.p2 { background: var(--accent-soft); color: var(--accent); }
+.fuerta-app .prio.always { background: transparent; border: 1px solid #555; color: #aaa; }
+.fuerta-app .prio-hint { margin-top: -4px; font-size: 13px; }

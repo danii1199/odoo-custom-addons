@@ -72,6 +72,7 @@ const Cal = (() => {
       </div>
       ${p.note ? `<p class="muted" style="margin-top:-6px">${esc(p.note)}${p.source === "bot" ? " · por tu entrenador" : p.source === "auto" ? " · automática" : ""}</p>` : ""}
       ${p.blocks.length ? `<p class="muted">${mins} min planificados</p>` : ""}
+      ${p.blocks.length > 1 ? PRIORITY_HINT : ""}
       ${all.length ? `<div class="blocks">${all.map((b, i) => blockCard(b, i, {
           numbered: i < p.blocks.length, done: p.done.includes(b.id), onCheck: `Cal.check(${b.id})`,
           note: i >= p.blocks.length ? "Hecha fuera del plan" : "" })).join("")}</div>`

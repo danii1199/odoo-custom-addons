@@ -4,7 +4,7 @@ import re
 from datetime import timedelta
 
 from . import catalog
-from .catalog import COOLDOWN_TYPE, SIDE_TYPES, WARMUP_TYPE
+from .catalog import CARDIO_TYPE, COOLDOWN_TYPE, SIDE_TYPES, STRENGTH_TYPES, WARMUP_TYPE
 from .dates import today
 
 # Para la vuelta a la calma preferimos estiramientos/yoga antes que meditación.
@@ -12,6 +12,10 @@ COOLDOWN_TITLES = re.compile(r"calma|estira|yoga|movilidad|pilates", re.IGNORECA
 # Para que calentamiento y estiramiento encajen con la zona del día.
 UPPER_RX = re.compile(r"superior|torso|brazo|pecho|espalda|hombro", re.IGNORECASE)
 LOWER_RX = re.compile(r"inferior|pierna|gl[uú]te", re.IGNORECASE)
+# Días de fuerza en los que también valen los Fullbody de fuerza (Cardio-Fuerza, híbridos…) para rellenar.
+STRENGTH_GROUPS = {"Torso", "Pierna y glúteo"}
+# Cardio como grupo secundario: mínimo de minutos (el cardio intenso de FuertaFit es casi todo de 15-20 min).
+CARDIO_MIN = 20
 
 
 def generate(env, params):
@@ -48,6 +52,10 @@ def generate(env, params):
         return bool(types) or tt not in SIDE_TYPES or it["group"] in groups
 
     main_pool = [it for it in pool if main_ok(it)]
+    # Los Fullbody de fuerza cuentan como fuerza en un día de Torso o Pierna: solo rellenan, tras el bloque principal.
+    extra_pool = [it for it in pool if it["group"] == "Fullbody" and it.get("trainingType") in STRENGTH_TYPES
+                  and not it["skip"] and "Fullbody" not in groups and not types and not intensities] \
+        if STRENGTH_GROUPS & set(groups) else []
     def side_fits(it):
         """Descarta calentamientos/estiramientos de la otra mitad del cuerpo (p. ej. «tren superior» en día de pierna)."""
         legs, upper = "Pierna y glúteo" in groups, "Torso" in groups
@@ -80,13 +88,21 @@ def generate(env, params):
         los demás se reparten el resto con una rutina cada uno.
         """
         w = {it["id"]: weight(it) for it in main_pool}
+        w.update({it["id"]: weight(it) * 0.6 for it in extra_pool})
         ranked = sorted(main_pool, key=lambda it: w[it["id"]], reverse=True)
         if len(groups) > 1:
             shares = [remaining * 0.6] + [remaining * 0.4 / (len(groups) - 1)] * (len(groups) - 1)
-            passes = [([it for it in ranked if it["group"] == g], share) for g, share in zip(groups, shares)]
-            ranked = sorted(ranked, key=lambda it: it["group"] != groups[0])  # estable: mantiene el azar dentro
+            # El cardio, intenso y de verdad (tipo Cardiovascular): necesita su rato aunque sea el grupo secundario.
+            shares = [max(sh, min(CARDIO_MIN, remaining / 2)) if g == "Cardio" and i else sh
+                      for i, (g, sh) in enumerate(zip(groups, shares))]
+            passes = [([it for it in ranked if it["group"] == g and (g != "Cardio" or it.get("trainingType") == CARDIO_TYPE)],
+                       share) for g, share in zip(groups, shares)]
         else:
             passes = []
+        # Relleno: primero el grupo principal (con los Fullbody de fuerza, que cuentan como él), luego el resto.
+        if groups:
+            first = {groups[0]} | ({"Fullbody"} if groups[0] in STRENGTH_GROUPS else set())
+            ranked = sorted(ranked + extra_pool, key=lambda it: (it["group"] not in first, -w[it["id"]]))
         used_zones, used_stems = set(), set()
         for candidates, limit in passes + [(ranked, None)]:
             for it in candidates:
@@ -117,10 +133,12 @@ def generate(env, params):
         fill(remaining, main)
         blocks = head + main + tail
         total = sum(b["durationMinutes"] for b in blocks)
-        score = abs(total - minutes) * 10 + len(blocks)
+        # Un grupo pedido que se queda sin rutina (p. ej. el cardio de un día de Torso + Cardio) pesa más que un minuto.
+        missing = len(set(groups) - {b["group"] for b in main})
+        score = abs(total - minutes) * 10 + missing * 100 + len(blocks)
         if best is None or score < best[0]:
             best = (score, blocks)
-        if total == minutes:
+        if total == minutes and not missing:
             break
 
     blocks = best[1] if best else []

@@ -14,6 +14,7 @@
                 <field name="day"/>
                 <field name="routine_id"/>
                 <field name="duration_minutes" sum="Total"/>
+                <field name="priority" optional="show"/>
                 <field name="note"/>
                 <field name="source"/>
                 <field name="url" widget="url" text="Abrir" optional="show"/>
@@ -39,6 +40,7 @@
                             <field name="day"/>
                             <field name="routine_id"/>
                             <field name="duration_minutes"/>
+                            <field name="priority"/>
                             <field name="url" widget="url" text="Abrir en FuertaFit"/>
                         </group>
                         <group>

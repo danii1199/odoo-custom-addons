@@ -79,6 +79,18 @@ Si añades algo a la web, añade su equivalente en el backend (y al revés).
 - Duraciones: `durationMinutes` es la **nominal** de FuertaFit («2x10MIN»), no la del vídeo; el usuario prefiere
   seguir con ella aunque algún día salga más largo (los vídeos a veces incluyen más que el entrenamiento). No corregir
   duraciones a mano sin que lo pida (2026-10-19 se probó con «Entrenamiento 30 de enero», id 1691, y lo dejó en 20).
+- **Prioridad del día** (2026-11-03, `services/priority.py`): como la duración nominal a veces se queda corta, cada
+  bloque del plan lleva `priority` (calculada, no guardada): 0 = calentamiento («Siempre»), 1 = la más fuerte del grupo
+  principal (el de más minutos), luego una de cada grupo secundario, luego el resto; Cuerpo-Mente al final. Se hacen
+  en el orden del plan; si no da tiempo, se recorta desde el número más alto. La pone `serializers.calendar` (web:
+  insignia en `blockCard`) y el campo `fuerta.plan.priority` (backend).
+- **Cardio de verdad** (2026-11-04, 20.0.1.5.0): el grupo Cardio solo tiene vídeos que FuertaFit no marca como fuerza
+  (`catalog.STRENGTH_TYPES` = Fuerza, Mixto). Antes «Combinación de fuerza y cardio» o «Cardio-Fuerza» caían en Cardio
+  por la palabra (176 de 681) y un día de Torso + Cardio salía todo fuerza («Entrenamiento híbrido 10»). Ahora son
+  Fullbody y **cuentan como fuerza**: en días de Torso o Pierna rellenan tras el grupo principal (`extra_pool`, peso
+  0,6). Cardio como grupo secundario: solo `Cardiovascular` y al menos `CARDIO_MIN` (20) min o la mitad del tiempo
+  (el cardio intenso de FuertaFit es casi todo de 15-20 min). Un grupo pedido sin rutina penaliza en la puntuación.
+  La migración 20.0.1.5.0 recalcula `fuerta.routine.group`. Tests: `tests/test_cardio.py`.
 - `semana.js`: `save()` sustituye `s`; los chips leen siempre `s.week[i]` al hacer clic (antes editaban el objeto viejo).
 - **Plan sigilo** (2026-10-21, `web/js/sigilo.js`, vista `#/sigilo` enlazada desde Hoy): rutina **propia**, no de
   FuertaFit, para los días sin tiempo: 30:00 justos (calentamiento, 3 asaltos de sombra, fuerza 40/20 × 2 vueltas,

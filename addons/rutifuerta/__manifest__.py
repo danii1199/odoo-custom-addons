@@ -3,7 +3,7 @@
     "summary": "Genera y planifica rutinas diarias con el catálogo de vídeos de FuertaFit",
     "description": "Solo enlaza a los vídeos de FuertaFit; nunca los descarga. "
                    "Cada usuario tiene su calendario, historial y ajustes; el catálogo es común.",
-    "version": "20.0.1.4.0",
+    "version": "20.0.1.5.0",
     "category": "Productivity",
     "author": "danii1199",
     "icon": "/rutifuerta/web/icon.png",  # fuera de static/: solo lo sirve el controlador, con permiso
