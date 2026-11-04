@@ -347,6 +347,12 @@
                     <button type="button" class="active" data-kind="">Todo</button>
                     <button t-foreach="resumen" t-as="r" type="button" t-att-data-kind="r[0]"><t t-out="r[1]"/> <small t-out="r[2]"/></button>
                 </div>
+                <section t-if="hack" class="ow-pass-section ow-hack">
+                    <h2 class="ow-h2">Tier Hack <small t-out="len(hack)"/></h2>
+                    <p class="ow-muted">Puedes cambiar un aspecto legendario del pase por cualquiera de estos (tras los 5 primeros
+                        niveles, además, eliges libremente qué camino sigues).</p>
+                    <div class="ow-hack-grid"><t t-foreach="hack" t-as="it"><t t-call="overwatch.season_item" it="it"/></t></div>
+                </section>
                 <section t-foreach="caminos" t-as="c" class="ow-pass-section">
                     <h2 class="ow-h2" t-out="c[0]"/>
                     <div class="ow-pass">

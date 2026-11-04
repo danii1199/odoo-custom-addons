@@ -212,12 +212,18 @@ class OverwatchWeb(http.Controller):
                 caminos.setdefault(it.section, {}).setdefault(it.tier, {"free": [], "premium": []})[it.track].append(d)
             else:
                 niveles.setdefault(it.tier, {"free": [], "premium": []})[it.track].append(d)
+        hack = []
+        for h in t.hack_ids:
+            url, kind = _cosmetic_media(h.cosmetic_id) if h.cosmetic_id else (h.media_url or "", "image")
+            hack.append({"name": h.name, "kind": "skin", "kind_name": tipos.get("skin"), "rarity": "legendary",
+                         "hero": h.hero_id.name or h.hero_text or "", "hero_key": h.hero_id.key or "", "url": url,
+                         "media_kind": kind, "tier": 0, "link": _cosmetic_link(h.cosmetic_id)})
         resumen = {}
         for it in t.item_ids:
             resumen[it.kind] = resumen.get(it.kind, 0) + 1
         return request.render("overwatch.season_page", {
             "v": VERSION, "data": _json_script({}), "t": t,
-            "niveles": sorted(niveles.items()), "prestigio": prestigio,
+            "niveles": sorted(niveles.items()), "prestigio": prestigio, "hack": hack,
             "caminos": [(nombre, sorted(filas.items())) for nombre, filas in caminos.items()],
             "resumen": [(k, tipos.get(k), n) for k, n in sorted(resumen.items(), key=lambda x: -x[1])],
             "imagen": (f"/web/image/ow.season/{t.id}/image?unique={int(t.write_date.timestamp())}" if t.image

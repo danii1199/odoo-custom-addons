@@ -5,7 +5,7 @@
                    "sorteo general o por rol; ficha de cada héroe con habilidades, historia y su vídeo de origen; "
                    "galería de aspectos, gestos, poses de victoria, presentaciones y grafitis; todos los pases de batalla. Catálogo importado "
                    "de OverFast API (datos oficiales) y de la wiki de Overwatch (cosméticos).",
-    "version": "20.0.1.7.0",
+    "version": "20.0.1.8.0",
     "category": "Website",
     "author": "danii1199",
     "license": "LGPL-3",

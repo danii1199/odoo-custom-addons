@@ -79,6 +79,17 @@
                                 </list>
                             </field>
                         </page>
+                        <page string="Tier Hack" name="hack">
+                            <field name="hack_ids">
+                                <list editable="bottom">
+                                    <field name="sequence" widget="handle"/>
+                                    <field name="name"/>
+                                    <field name="hero_id"/>
+                                    <field name="hero_text" optional="hide"/>
+                                    <field name="cosmetic_id"/>
+                                </list>
+                            </field>
+                        </page>
                         <page string="Eventos" name="events">
                             <field name="event_ids">
                                 <list editable="bottom">

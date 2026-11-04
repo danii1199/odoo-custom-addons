@@ -42,6 +42,8 @@ class OwSeason(models.Model):
     new_hero_ids = fields.Many2many("ow.hero", string="Héroes nuevos")
     new_heroes_text = fields.Char("Héroes nuevos (texto)", help="Los que aún no están en el catálogo.")
     reward_ids = fields.One2many("ow.season.reward", "season_id", "Recompensas míticas del pase")
+    hack_ids = fields.One2many("ow.season.hack", "season_id", "Tier Hack",
+                               help="Aspectos legendarios por los que se puede cambiar uno del pase (desde 2026 T4).")
     item_ids = fields.One2many("ow.season.item", "season_id", "Todas las recompensas")
     event_ids = fields.One2many("ow.event", "season_id", "Eventos")
     item_count = fields.Integer("Nº de recompensas", compute="_compute_item_count")
@@ -184,3 +186,18 @@ class OwSeasonItem(models.Model):
     hero_text = fields.Char("Héroe (texto)")
     cosmetic_id = fields.Many2one("ow.cosmetic", "Cosmético del catálogo", ondelete="set null")
     media_url = fields.Char("Imagen", help="De la wiki (si no está en la galería del héroe).")
+
+
+class OwSeasonHack(models.Model):
+    """Tier Hack: un aspecto legendario por el que se puede cambiar uno del pase (services/hack.py)."""
+    _name = "ow.season.hack"
+    _description = "Aspecto del Tier Hack de un pase"
+    _order = "season_id, sequence, id"
+
+    season_id = fields.Many2one("ow.season", "Temporada", required=True, ondelete="cascade", index=True)
+    sequence = fields.Integer(default=10)
+    name = fields.Char("Aspecto", required=True)
+    hero_id = fields.Many2one("ow.hero", "Héroe", ondelete="set null")
+    hero_text = fields.Char("Héroe (texto)", help="Como viene en la wiki, por si no está en el catálogo.")
+    cosmetic_id = fields.Many2one("ow.cosmetic", "Aspecto del catálogo", ondelete="set null")
+    media_url = fields.Char("Imagen", help="De la wiki, si el aspecto no está en la galería del héroe.")

@@ -514,3 +514,49 @@ class TestEventos(HttpCase):
         self.assertIn('href="https://example.org/notas"', r)
         self.assertLess(r.index("Excavation Initiative"), r.index("Por empezar"))
         self.assertIn("Overwatch Countdown", r)
+
+
+@tagged("post_install", "-at_install")
+class TestTierHack(HttpCase):
+
+    def test_tier_hack(self):
+        """Aspectos del Tier Hack: del apartado de la página «Battle Pass», de la temporada que dice su cabecera."""
+        from ..services import hack, seasons
+        texto = """== Overview ==
+=== Tier Hack ===
+Introduced in Reign of Talon: Season 4, Tier Hack allows players to replace a Legendary Skin…
+
+Current Skin Pool is:
+*{{rl|l|Prueba Hack|skin|Heroe Hack}}
+*{{rl|l|Witch|skin|Kiriko}}
+
+==Season 5: A Grim Doctrine==
+===Free==="""
+        self.assertEqual(hack.parsear(texto), ("A Grim Doctrine", [{"name": "Prueba Hack", "hero": "Heroe Hack"},
+                                                                  {"name": "Witch", "hero": "Kiriko"}]))
+        self.assertEqual(hack.parsear("==Season 3: Algo==\nsin hack"), (None, []))
+
+        S = self.env["ow.season"]
+        S.search([]).unlink()
+        heroe = self.env["ow.hero"].create({"key": "heroe-hack", "name": "Heroe Hack", "role": "damage"})
+        cos = self.env["ow.cosmetic"].create({"hero_id": heroe.id, "type": "skin", "name": "Prueba Hack",
+                                              "rarity": "legendary"})
+        t = {"key": "2026-s5", "arc": "Reign of Talon", "year": 2026, "number": 5, "subtitle": "A Grim Doctrine",
+             "date_start": date(2026, 10, 6), "date_end": date(2026, 12, 8), "dates_text": "", "theme": "",
+             "image_file": "", "heroes": [], "rewards": [], "events": []}
+        seasons.guardar(self.env, [t], "b1", hacks={"2026-s5": hack.parsear(texto)[1]})
+        temp = S.search([("key", "=", "2026-s5")])
+        self.assertEqual(temp.hack_ids.mapped("name"), ["Prueba Hack", "Witch"])
+        self.assertEqual(temp.hack_ids[0].cosmetic_id, cos)
+        # si la wiki cambia la lista, se rehace y queda en Novedades
+        seasons.guardar(self.env, [t], "b2", hacks={"2026-s5": [{"name": "Witch", "hero": "Kiriko"}]})
+        self.assertEqual(temp.hack_ids.mapped("name"), ["Witch"])
+        self.assertTrue(self.env["ow.change"].search([("batch", "=", "b2"), ("what", "like", "Tier Hack cambiado")]))
+        # sin datos de la wiki no se borra lo que hay
+        seasons.guardar(self.env, [t], "b3", hacks={})
+        self.assertEqual(temp.hack_ids.mapped("name"), ["Witch"])
+
+        seasons.guardar(self.env, [t], "b4", hacks={"2026-s5": hack.parsear(texto)[1]})
+        r = self.url_open("/overwatch/pases/2026-s5").text
+        self.assertIn("Tier Hack", r)
+        self.assertIn(f'href="/overwatch/heroe/heroe-hack#aspectos/{cos.id}"', r)

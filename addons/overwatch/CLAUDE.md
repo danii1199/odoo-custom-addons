@@ -150,6 +150,14 @@ tests/        test_overwatch.py: parser de la wiki, acceso por grupo, páginas y
   pone imagen y página, no las fechas. Estado al segundo con `start_at`/`end_at` (el `_search_state` va por días: el
   controlador reparte con `_eventos`). Web: cuenta atrás en vivo (`data-countdown`, seasons.js), fechas en hora de
   Madrid. Los «sin fechas confirmadas» ya no salen en la franja de /overwatch/pases, solo en /overwatch/eventos.
+- **Tier Hack** (2026-11-04, 20.0.1.8.0; `services/hack.py`, `ow.season.hack`): desde la Temporada 4 de 2026 se
+  puede cambiar un aspecto legendario del pase por otro de una lista. La wiki solo la da para el pase actual
+  (apartado «=== Tier Hack ===» de «Battle Pass», «Current Skin Pool is:») y reescribe la página cada temporada:
+  las de temporadas terminadas salen de la revisión de la víspera de su fin (`rvstart`), aceptada solo si su primera
+  cabecera «==Season N: Nombre==» es esa temporada. Una terminada con lista ya no se pide (a diario, solo la actual);
+  sin datos no se borra nada; si cambia, novedad «Tier Hack cambiado/publicado». Emparejado con la galería por
+  `_nombre` (solo letras y números: «Class President 76» = «Class President: 76»); si no, imagen por archivo de la
+  wiki. Web: sección «Tier Hack» arriba en `/overwatch/pases/<key>`; backend: pestaña en el pase.
 - **Carteles ampliables** (`img.ow-zoomable`: hoja de ruta de cada pase, imagen de cada evento): `<dialog class="ow-zoom">`
   con rueda, doble clic y botones para el zoom (1×–8×, alrededor del puntero) y arrastre para moverse (seasons.js).
 

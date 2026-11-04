@@ -583,3 +583,7 @@ img.ow-zoomable:focus-visible { outline: 2px solid var(--ow-orange); outline-off
     .ow-zoom-bar .ow-muted { display: none; }
     .ow-event-list { grid-template-columns: 1fr; }
 }
+
+/* Tier Hack: aspectos por los que se puede cambiar uno legendario del pase */
+.ow-hack-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 8px; }
+.ow-hack .ow-h2 small { color: var(--ow-muted); font-size: .7em; }

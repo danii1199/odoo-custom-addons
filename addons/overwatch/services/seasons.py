@@ -16,7 +16,7 @@ from zoneinfo import ZoneInfo
 
 from odoo import fields
 
-from . import countdown, eventos, pases, wiki
+from . import countdown, eventos, hack, pases, wiki
 
 PAGINAS = [("Season/2022-2026", "Overwatch 2", None)]  # (página, etapa, año del arco)
 PRIMER_ARCO = 2026  # desde aquí, una página por año: «Season/<año>»; se para en la primera que no exista
@@ -156,10 +156,11 @@ def _cosmetico(hero, kind, nombre):
     que la wiki añade a veces en los grafitis: «Street Rebel Lucio»)."""
     if not hero or kind not in pases.CATALOGO:
         return hero.browse() if hero else None
-    n = _sin_tildes(nombre)
-    sin_heroe = _sin_tildes(re.sub(re.escape(hero.wiki_name or hero.name), "", nombre, flags=re.I))
+    # solo letras y números: «Class President 76» = «Class President: 76»
+    n = _nombre(nombre)
+    sin_heroe = _nombre(re.sub(re.escape(hero.wiki_name or hero.name), "", nombre, flags=re.I))
     for c in hero.cosmetic_ids:
-        if c.type == kind and _sin_tildes(c.name) in (n, sin_heroe):
+        if c.type == kind and _nombre(c.name) in (n, sin_heroe):
             return c
     return hero.cosmetic_ids.browse()
 
@@ -232,7 +233,7 @@ def guardar_countdown(env, lista, batch, avisar):
     return nuevos
 
 
-def guardar(env, temporadas, batch=None, items=None, session=None, events=None, countdown_events=None):
+def guardar(env, temporadas, batch=None, items=None, session=None, events=None, countdown_events=None, hacks=None):
     """Crea o actualiza las temporadas (por `key`). Devuelve {"new", "updated", "changes"}.
 
     Con temporadas ya cargadas, apunta en Novedades (ow.change, con `batch`) los pases nuevos y los míticos que
@@ -245,6 +246,7 @@ def guardar(env, temporadas, batch=None, items=None, session=None, events=None, 
     habia = bool(Season.search_count([]))
     cambios = 0
     habia_items = bool(env["ow.season.item"].search_count([]))  # la primera carga de recompensas no es novedad
+    habia_hack = bool(env["ow.season.hack"].search_count([]))
     peticiones = {}  # (tabla, id de temporada, posición) → archivos candidatos de la wiki
     creadas = set()  # las nuevas ya salen como «Pase nuevo»: sus recompensas no son otra novedad
     heroes = env["ow.hero"].with_context(active_test=False).search([])
@@ -317,12 +319,36 @@ def guardar(env, temporadas, batch=None, items=None, session=None, events=None, 
                 Change.create({"batch": batch, "kind": "season", "season_id": rec.id,
                                "what": f"{rec.name} · recompensas publicadas", "new_value": f"{len(nuevos)} recompensas"})
                 cambios += 1
+        lista = (hacks or {}).get(t["key"])
+        if lista:  # Tier Hack (hack.py); la wiki solo da el del pase actual: los que ya hay no se borran
+            antes = [(h.name, h.hero_text or "") for h in rec.hack_ids]
+            ahora = [(h["name"], h["hero"] or "") for h in lista]
+            if antes != ahora:
+                rec.hack_ids.unlink()
+                filas = []
+                for i, h in enumerate(lista):
+                    hero = por_nombre.get(_sin_tildes(h["hero"])) if h["hero"] else None
+                    cos = _cosmetico(hero, "skin", h["name"]) if hero else None
+                    filas.append({"season_id": rec.id, "sequence": i, "name": h["name"], "hero_id": hero.id if hero else False,
+                                  "hero_text": h["hero"] or False, "cosmetic_id": cos.id if cos else False})
+                env["ow.season.hack"].create(filas)
+                if habia_hack and rec.id not in creadas:
+                    Change.create({"batch": batch, "kind": "season", "season_id": rec.id,
+                                   "what": f"{rec.name} · Tier Hack" + (" cambiado" if antes else " publicado"),
+                                   "new_value": ", ".join(f"{n} ({h})" if h else n for n, h in ahora)})
+                    cambios += 1
+        for h in rec.hack_ids.filtered(lambda x: not x.cosmetic_id):
+            # puede que la galería ya lo tenga; si no, su imagen por nombre de archivo de la wiki
+            h.cosmetic_id = _cosmetico(h.hero_id, "skin", h.name) if h.hero_id else False
+            if not h.cosmetic_id and not h.media_url:
+                peticiones[("hack", rec.id, h.sequence)] = pases.candidatos(
+                    "skin", h.name, h.hero_id.wiki_name or h.hero_text or "")
     if session and peticiones:
         urls = pases.resolver_imagenes(session, peticiones)
         for (tabla, season_id, pos), url in urls.items():
             if not url:
                 continue
-            modelo = env["ow.season.reward" if tabla == "reward" else "ow.season.item"]
+            modelo = env[{"reward": "ow.season.reward", "hack": "ow.season.hack"}.get(tabla, "ow.season.item")]
             modelo.search([("season_id", "=", season_id), ("sequence", "=", pos)], limit=1).media_url = url
     for rec in Season.search([("image_url", "=", False)]):  # sin hoja de ruta: la imagen de su mítico
         r = rec.reward_ids[:1]
@@ -344,5 +370,7 @@ def guardar(env, temporadas, batch=None, items=None, session=None, events=None, 
 def importar(env, session=None, batch=None):
     session = session or wiki.nueva_sesion()
     temporadas = descargar(session)
+    con_lista = set(env["ow.season.hack"].search([]).mapped("season_id.key"))
     return guardar(env, temporadas, batch, items=pases.descargar(session, temporadas), session=session,
-                   events=eventos.descargar(session, temporadas), countdown_events=countdown.descargar())
+                   events=eventos.descargar(session, temporadas), countdown_events=countdown.descargar(),
+                   hacks=hack.descargar(session, temporadas, con_lista))
