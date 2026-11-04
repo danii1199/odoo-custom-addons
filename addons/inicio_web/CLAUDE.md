@@ -31,3 +31,10 @@ privado y la ve poca gente.
 Actualizar: como añade un campo a `res.users`, `odoo module upgrade` falla («column res_users.ini_menu_oculto does
 not exist») la primera vez; usa `odoo -d <base> -u inicio_web --stop-after-init --http-port=8098`. Después vale:
 `sg docker -c "docker exec -i odoo odoo module upgrade -d <base> inicio_web && docker restart odoo"`.
+
+## Esquema de color (2026-11-04)
+
+`portada.js` va en `web.assets_frontend`, así que se carga en **todo** el sitio. Al principio pone
+`document.documentElement.style.colorScheme` a `dark` o `light` según el fondo del `body` (el tema es oscuro). Sin
+esto, los controles nativos (calendario de `input[type=date]`, listas de `select`) salían en claro sobre fondo oscuro, y
+Samsung Internet con modo oscuro volvía a oscurecer la página por su cuenta.

@@ -1,6 +1,18 @@
 /* Portada (inicio_web): reloj en vivo, saludo según la hora y un foco de luz que sigue al ratón en las tarjetas. */
 (function () {
     "use strict";
+
+    /* En todo el sitio: si el tema es oscuro, se lo decimos al navegador (color-scheme). Si no, los controles nativos
+       (calendario de las fechas, listas de los desplegables) salen en claro sobre fondo oscuro, y algunos navegadores
+       de móvil (Samsung Internet con modo oscuro) «oscurecen» por su cuenta una página que ya es oscura. */
+    function esquemaDeColor() {
+        const m = getComputedStyle(document.body).backgroundColor.match(/[\d.]+/g);
+        if (!m || (m[3] !== undefined && +m[3] === 0)) return;
+        const [r, g, b] = m.map(Number);
+        document.documentElement.style.colorScheme = (0.299 * r + 0.587 * g + 0.114 * b) < 128 ? "dark" : "light";
+    }
+    if (document.body) esquemaDeColor();
+    else document.addEventListener("DOMContentLoaded", esquemaDeColor);
     const DIAS = ["domingo", "lunes", "martes", "miércoles", "jueves", "viernes", "sábado"];
     const MESES = ["enero", "febrero", "marzo", "abril", "mayo", "junio", "julio", "agosto", "septiembre",
         "octubre", "noviembre", "diciembre"];
