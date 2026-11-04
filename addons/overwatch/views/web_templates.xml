@@ -37,6 +37,9 @@
                 <a class="ow-logo" href="/overwatch"><span class="ow-logo-mark"/>OVERWATCH</a>
                 <div class="ow-top-title">SELECCIONA UN HÉROE</div>
                 <nav class="ow-top-actions">
+                    <a href="/overwatch/pases" class="ow-link">Pases de batalla</a>
+                    <a href="/overwatch/eventos" class="ow-link">Eventos</a>
+                    <a href="/overwatch/novedades" class="ow-link">Novedades</a>
                     <a t-if="is_manager" href="/odoo/action-overwatch.action_heroes" class="ow-link">Gestionar</a>
                 </nav>
             </header>
@@ -186,6 +189,317 @@
                     </aside>
                 </div>
             </section>
+        </t>
+    </template>
+
+    <!-- ================= Pases de batalla ================= -->
+    <template id="season_reward_body" name="Overwatch: contenido de un mítico del pase">
+        <div class="ow-reward-media">
+            <img t-if="r['media'][0] and r['media'][1] == 'image'" t-att-src="r['media'][0]" alt="" loading="lazy" onerror="this.remove()"/>
+            <video t-elif="r['media'][0]" t-att-src="r['media'][0]" muted="" loop="" playsinline="" preload="metadata"/>
+            <span class="ow-reward-ini" t-out="(r['name'] or '?')[:1]"/>
+        </div>
+        <div class="ow-reward-info">
+            <small t-out="r['kind_name']"/>
+            <strong t-out="r['name']"/>
+            <span t-if="r['hero']" t-out="r['hero']"/>
+        </div>
+    </template>
+
+    <!-- Una temporada: imagen (hoja de ruta), título, fechas, héroes nuevos y los míticos de su pase -->
+    <template id="season_card" name="Overwatch: tarjeta de temporada">
+        <article t-attf-class="ow-season #{'ow-season-current' if destacada else ''}">
+            <div class="ow-season-img">
+                <img t-if="f['imagen']" t-att-src="f['imagen']" t-att-alt="f['rec'].name" loading="lazy"
+                     onerror="this.remove()" class="ow-zoomable" title="Ampliar el cartel" tabindex="0"/>
+                <span class="ow-season-num" t-out="f['rec'].number"/>
+            </div>
+            <div class="ow-season-body">
+                <div class="ow-season-arc"><t t-out="f['rec'].arc"/><t t-if="f['rec'].year"> · <t t-out="f['rec'].year"/></t></div>
+                <h2 class="ow-season-title">Temporada <t t-out="f['rec'].number"/><t t-if="f['rec'].subtitle">: <t t-out="f['rec'].subtitle"/></t></h2>
+                <p class="ow-season-dates" t-out="f['rec'].dates_text"/>
+                <p t-if="f['rec'].theme" class="ow-season-theme" t-out="f['rec'].theme"/>
+                <div t-if="f['rewards']" class="ow-season-rewards">
+                    <t t-foreach="f['rewards']" t-as="r">
+                        <a t-if="r['link']" t-attf-class="ow-reward ow-reward-#{r['kind']}" t-att-href="r['link']"
+                           t-att-title="'Ver en la galería de %s' % r['hero']"><t t-call="overwatch.season_reward_body" r="r"/></a>
+                        <div t-else="" t-attf-class="ow-reward ow-reward-#{r['kind']}"><t t-call="overwatch.season_reward_body" r="r"/></div>
+                    </t>
+                </div>
+                <p t-elif="destacada" class="ow-muted">La wiki aún no ha publicado los míticos de este pase.</p>
+                <a t-if="f['item_count']" class="ow-btn ow-season-all" t-att-href="'/overwatch/pases/%s' % f['rec'].key">
+                    Ver todas las recompensas <small t-out="f['item_count']"/> ›</a>
+                <p t-elif="destacada" class="ow-muted ow-season-noitems">La wiki aún no ha publicado la tabla de niveles de este pase:
+                    en cuanto salga, la búsqueda semanal la trae.</p>
+                <div t-if="f['heroes'] or f['rec'].new_heroes_text" class="ow-season-heroes">
+                    <span class="ow-season-label">Héroes nuevos</span>
+                    <a t-foreach="f['heroes']" t-as="h" class="ow-season-hero" t-att-href="'/overwatch/heroe/%s' % h['key']">
+                        <img t-if="h['portrait']" t-att-src="h['portrait']" alt="" loading="lazy"/><t t-out="h['name']"/>
+                    </a>
+                    <span t-if="f['rec'].new_heroes_text" class="ow-season-hero" t-out="f['rec'].new_heroes_text"/>
+                </div>
+            </div>
+        </article>
+    </template>
+
+    <template id="seasons_page" name="Overwatch: pases de batalla">
+        <t t-call="overwatch.page_layout" title="'Pases de batalla · Overwatch'" body_class="'ow-seasons'" script="'seasons.js'">
+            <div class="ow-bg" aria-hidden="true"><div class="ow-bg-img"/><div class="ow-bg-shade ow-bg-shade-strong"/></div>
+            <header class="ow-topbar">
+                <a class="ow-back" href="/overwatch">‹ Selección de héroes</a>
+                <div class="ow-top-title">PASES DE BATALLA</div>
+                <nav class="ow-top-actions">
+                    <a href="/overwatch/eventos" class="ow-link">Eventos</a>
+                    <a href="/overwatch/novedades" class="ow-link">Novedades</a>
+                    <a t-if="is_manager" href="/odoo/action-overwatch.action_seasons" class="ow-link">Gestionar</a>
+                </nav>
+            </header>
+            <main class="ow-seasons-main">
+                <section t-if="eventos_activos or eventos_proximos or eventos_sin_fechas" class="ow-events-strip">
+                    <div class="ow-events-head">
+                        <h1 class="ow-h1">Eventos</h1>
+                        <a class="ow-link" href="/overwatch/eventos">Todos los eventos ›</a>
+                    </div>
+                    <div class="ow-event-list">
+                        <t t-foreach="eventos_activos" t-as="e"><t t-call="overwatch.event_card" e="e"/></t>
+                        <t t-foreach="eventos_proximos" t-as="e"><t t-call="overwatch.event_card" e="e"/></t>
+                        <t t-foreach="eventos_sin_fechas" t-as="e"><t t-call="overwatch.event_card" e="e"/></t>
+                    </div>
+                </section>
+                <section t-if="actual">
+                    <h1 class="ow-h1">Pase actual</h1>
+                    <t t-call="overwatch.season_card" f="actual" destacada="True"/>
+                </section>
+                <p t-else="" class="ow-muted">No hay ninguna temporada en curso en el catálogo. Actualízalo desde el backend.</p>
+                <section t-if="proximas">
+                    <h2 class="ow-h1">Próxima temporada</h2>
+                    <t t-foreach="proximas" t-as="f"><t t-call="overwatch.season_card" f="f" destacada="False"/></t>
+                </section>
+                <section t-if="anteriores">
+                    <h2 class="ow-h1">Pases anteriores <small t-out="len(anteriores)"/></h2>
+                    <div class="ow-season-list">
+                        <t t-foreach="anteriores" t-as="f"><t t-call="overwatch.season_card" f="f" destacada="False"/></t>
+                    </div>
+                </section>
+
+                <dialog class="ow-zoom" aria-label="Cartel ampliado">
+                    <div class="ow-zoom-stage"><img alt=""/></div>
+                    <div class="ow-zoom-bar">
+                        <button type="button" class="ow-btn" data-zoom="-1" aria-label="Alejar">−</button>
+                        <button type="button" class="ow-btn" data-zoom="0">Ajustar</button>
+                        <button type="button" class="ow-btn" data-zoom="1" aria-label="Acercar">+</button>
+                        <span class="ow-muted">Rueda o doble clic para acercar · arrastra para moverte</span>
+                        <button type="button" class="ow-btn" data-close="">Cerrar</button>
+                    </div>
+                </dialog>
+                <p class="ow-muted ow-seasons-source">Datos e imágenes de la <a href="https://overwatch.weirdgloop.org/w/Season" target="_blank" rel="noopener">Overwatch Wiki</a>
+                    (Weird Gloop, <a href="https://creativecommons.org/licenses/by-sa/3.0/" target="_blank" rel="noopener">CC BY-SA</a>).
+                    Los pases empezaron con Overwatch 2 (octubre de 2022).</p>
+            </main>
+        </t>
+    </template>
+
+    <!-- Una recompensa de un nivel: imagen (o el símbolo de su tipo), nombre, tipo y héroe -->
+    <template id="season_item_body" name="Overwatch: contenido de una recompensa del pase">
+        <div class="ow-pitem-media">
+            <img t-if="it['url'] and it['media_kind'] == 'image'" t-att-src="it['url']" alt="" loading="lazy" onerror="this.remove()"/>
+            <video t-elif="it['url']" t-att-data-src="it['url']" muted="" loop="" playsinline="" preload="none"/>
+            <span class="ow-pitem-ico" t-out="{'icon': '◉', 'card': '▭', 'charm': '✦', 'souvenir': '◆', 'voice': '♪', 'title': '❝', 'other': '+', 'spray': '✺', 'emote': '☺', 'victory_pose': '★', 'highlight_intro': '▶', 'skin': '◐'}.get(it['kind'], '+')"/>
+        </div>
+        <div class="ow-pitem-info">
+            <strong t-out="it['name']"/>
+            <small><t t-out="it['kind_name']"/><t t-if="it['hero']"> · <t t-out="it['hero']"/></t></small>
+        </div>
+    </template>
+
+    <!-- Una recompensa: si es un cosmético de la galería, enlace a él; si no, pero tiene imagen, botón que la abre en
+         grande (seasons.js); si no, una caja. (En este QWeb t-tag no cambia la etiqueta: por eso, tres ramas.) -->
+    <template id="season_item" name="Overwatch: recompensa del pase">
+        <a t-if="it['link']" class="ow-pitem" t-att-href="it['link']" t-att-data-rarity="it['rarity'] or None"
+           t-att-data-kind="it['kind']" t-att-title="'Ver en la galería de %s' % it['hero']"><t t-call="overwatch.season_item_body" it="it"/></a>
+        <button t-elif="it['url']" type="button" class="ow-pitem" t-att-data-rarity="it['rarity'] or None" t-att-data-kind="it['kind']"
+                t-att-data-big="it['url']" t-att-data-video="'1' if it['media_kind'] == 'video' else None"
+                title="Ver en grande"><t t-call="overwatch.season_item_body" it="it"/></button>
+        <div t-else="" class="ow-pitem" t-att-data-rarity="it['rarity'] or None" t-att-data-kind="it['kind']"><t t-call="overwatch.season_item_body" it="it"/></div>
+    </template>
+
+    <template id="season_page" name="Overwatch: recompensas de un pase">
+        <t t-call="overwatch.page_layout" title="'%s · Overwatch' % t.name" body_class="'ow-seasons ow-season-detail'" script="'seasons.js'">
+            <div class="ow-bg" aria-hidden="true">
+                <div class="ow-bg-img" t-attf-style="background-image:url('#{imagen}')"/>
+                <div class="ow-bg-shade ow-bg-shade-strong"/>
+            </div>
+            <header class="ow-topbar">
+                <a class="ow-back" href="/overwatch/pases">‹ Pases de batalla</a>
+                <div class="ow-top-title">RECOMPENSAS DEL PASE</div>
+                <nav class="ow-top-actions">
+                    <a t-if="is_manager" t-attf-href="/odoo/action-overwatch.action_seasons/#{t.id}" class="ow-link">Editar</a>
+                </nav>
+            </header>
+            <main class="ow-seasons-main">
+                <img t-if="imagen" t-att-src="imagen" alt="Cartel de la temporada" class="ow-zoomable ow-season-poster"
+                     title="Ampliar el cartel" tabindex="0" onerror="this.remove()"/>
+                <div class="ow-season-arc"><t t-out="t.arc"/><t t-if="t.year"> · <t t-out="t.year"/></t></div>
+                <h1 class="ow-h1 ow-mt0">Temporada <t t-out="t.number"/><t t-if="t.subtitle">: <t t-out="t.subtitle"/></t></h1>
+                <p class="ow-muted"><t t-out="t.dates_text"/> · <t t-out="t.item_count"/> recompensas</p>
+                <div t-if="resumen" class="ow-pass-filters" role="group" aria-label="Filtrar por tipo">
+                    <button type="button" class="active" data-kind="">Todo</button>
+                    <button t-foreach="resumen" t-as="r" type="button" t-att-data-kind="r[0]"><t t-out="r[1]"/> <small t-out="r[2]"/></button>
+                </div>
+                <section t-foreach="caminos" t-as="c" class="ow-pass-section">
+                    <h2 class="ow-h2" t-out="c[0]"/>
+                    <div class="ow-pass">
+                        <div class="ow-pass-head"><span>Nivel</span><span>Gratis</span><span>Prémium</span></div>
+                        <div t-foreach="c[1]" t-as="n" class="ow-pass-row">
+                            <span class="ow-pass-tier" t-out="n[0]"/>
+                            <div class="ow-pass-cell"><t t-foreach="n[1]['free']" t-as="it"><t t-call="overwatch.season_item" it="it"/></t></div>
+                            <div class="ow-pass-cell ow-pass-premium"><t t-foreach="n[1]['premium']" t-as="it"><t t-call="overwatch.season_item" it="it"/></t></div>
+                        </div>
+                    </div>
+                </section>
+                <p t-if="caminos" class="ow-muted ow-pass-note">Desde la Temporada 4 de 2026 el pase va por caminos: tras el inicial
+                    eliges en qué orden completas los demás. El nivel cuenta dentro de cada camino.</p>
+                <div t-if="niveles" class="ow-pass">
+                    <div class="ow-pass-head"><span>Nivel</span><span>Gratis</span><span>Prémium</span></div>
+                    <div t-foreach="niveles" t-as="n" class="ow-pass-row">
+                        <span class="ow-pass-tier" t-out="n[0]"/>
+                        <div class="ow-pass-cell"><t t-foreach="n[1]['free']" t-as="it"><t t-call="overwatch.season_item" it="it"/></t></div>
+                        <div class="ow-pass-cell ow-pass-premium"><t t-foreach="n[1]['premium']" t-as="it"><t t-call="overwatch.season_item" it="it"/></t></div>
+                    </div>
+                </div>
+                <p t-if="not niveles and not caminos" class="ow-muted">La wiki aún no ha publicado la tabla de niveles de este pase.</p>
+                <section t-if="prestigio">
+                    <h2 class="ow-h1">Niveles de prestigio</h2>
+                    <div class="ow-pass-prestige">
+                        <div t-foreach="prestigio" t-as="it" class="ow-pass-prestige-item">
+                            <span class="ow-pass-tier" t-out="it['tier']"/><t t-call="overwatch.season_item" it="it"/>
+                        </div>
+                    </div>
+                </section>
+                <dialog class="ow-lightbox" aria-label="Vista grande">
+                    <div class="ow-lightbox-media"/>
+                    <p class="ow-lightbox-name"/>
+                    <button type="button" class="ow-btn" data-close="">Cerrar</button>
+                </dialog>
+
+                <dialog class="ow-zoom" aria-label="Cartel ampliado">
+                    <div class="ow-zoom-stage"><img alt=""/></div>
+                    <div class="ow-zoom-bar">
+                        <button type="button" class="ow-btn" data-zoom="-1" aria-label="Alejar">−</button>
+                        <button type="button" class="ow-btn" data-zoom="0">Ajustar</button>
+                        <button type="button" class="ow-btn" data-zoom="1" aria-label="Acercar">+</button>
+                        <span class="ow-muted">Rueda o doble clic para acercar · arrastra para moverte</span>
+                        <button type="button" class="ow-btn" data-close="">Cerrar</button>
+                    </div>
+                </dialog>
+                <p class="ow-muted ow-seasons-source">Datos e imágenes de la <a href="https://overwatch.weirdgloop.org/w/Battle_Pass" target="_blank" rel="noopener">Overwatch Wiki</a>
+                    (Weird Gloop, <a href="https://creativecommons.org/licenses/by-sa/3.0/" target="_blank" rel="noopener">CC BY-SA</a>).</p>
+            </main>
+        </t>
+    </template>
+
+    <!-- ================= Novedades ================= -->
+    <template id="changes_page" name="Overwatch: novedades">
+        <t t-call="overwatch.page_layout" title="'Novedades · Overwatch'" body_class="'ow-seasons ow-changes'" script="'seasons.js'">
+            <div class="ow-bg" aria-hidden="true"><div class="ow-bg-img"/><div class="ow-bg-shade ow-bg-shade-strong"/></div>
+            <header class="ow-topbar">
+                <a class="ow-back" href="/overwatch">‹ Selección de héroes</a>
+                <div class="ow-top-title">NOVEDADES</div>
+                <nav class="ow-top-actions">
+                    <a href="/overwatch/pases" class="ow-link">Pases de batalla</a>
+                    <a t-if="is_manager" href="/odoo/action-overwatch.action_changes" class="ow-link">Gestionar</a>
+                </nav>
+            </header>
+            <main class="ow-seasons-main">
+                <h1 class="ow-h1">Novedades</h1>
+                <p class="ow-muted">Lo que ha cambiado en el juego desde la última búsqueda: vida de los héroes, números de las
+                    habilidades, héroes y pases nuevos. Se busca cada semana.</p>
+                <p t-if="not grupos" class="ow-muted">Todavía no hay novedades: todo estaba igual en las búsquedas hechas hasta ahora.</p>
+                <section t-foreach="grupos" t-as="g" class="ow-change-group">
+                    <h2 class="ow-change-date" t-out="g['fecha']"/>
+                    <ul class="ow-change-list">
+                        <li t-foreach="g['items']" t-as="c" t-attf-class="ow-change ow-change-#{c['kind']}">
+                            <span class="ow-change-kind" t-out="c['kind_name']"/>
+                            <span class="ow-change-what">
+                                <a t-if="c['hero_key']" t-att-href="'/overwatch/heroe/%s' % c['hero_key']" t-out="c['hero']"/>
+                                <a t-elif="c['season_key']" t-att-href="'/overwatch/pases/%s' % c['season_key']">Pase</a>
+                                <t t-out="c['what']"/>
+                            </span>
+                            <span class="ow-change-values">
+                                <del t-if="c['old']" t-out="c['old']"/>
+                                <t t-if="c['old'] and c['new']"> → </t>
+                                <ins t-if="c['new']" t-out="c['new']"/>
+                            </span>
+                        </li>
+                    </ul>
+                </section>
+            </main>
+        </t>
+    </template>
+
+    <!-- ================= Eventos ================= -->
+    <template id="event_card" name="Overwatch: tarjeta de evento">
+        <article t-attf-class="ow-event ow-event-#{e['rec'].state}">
+            <div class="ow-event-img">
+                <img t-if="e['imagen']" t-att-src="e['imagen']" t-att-alt="e['rec'].name" loading="lazy" onerror="this.remove()"
+                     class="ow-zoomable" title="Ampliar" tabindex="0"/>
+            </div>
+            <div class="ow-event-body">
+                <span class="ow-event-state" t-out="{'active': 'Activo', 'upcoming': 'Por empezar', 'unconfirmed': 'Sin fechas confirmadas', 'past': 'Terminado'}[e['rec'].state]"/>
+                <h3 class="ow-event-name" t-out="e['rec'].name"/>
+                <p t-if="e['rec'].approx" class="ow-event-dates">Durante <t t-out="'la temporada' if e['season_key'] else 'su temporada'"/>
+                    (<t t-out="e['fechas']"/>): la wiki no da sus fechas exactas</p>
+                <p t-else="" class="ow-event-dates" t-out="e['fechas']"/>
+                <p t-if="e['cuenta']" class="ow-event-count" t-out="e['cuenta']"/>
+                <p class="ow-event-links"><span t-out="e['tipo']"/>
+                    <t t-if="e['season_key']"> · <a t-att-href="'/overwatch/pases/%s' % e['season_key']">su pase</a></t>
+                    · <a t-att-href="e['wiki']" target="_blank" rel="noopener">en la wiki</a></p>
+            </div>
+        </article>
+    </template>
+
+    <template id="events_page" name="Overwatch: eventos">
+        <t t-call="overwatch.page_layout" title="'Eventos · Overwatch'" body_class="'ow-seasons ow-events'" script="'seasons.js'">
+            <div class="ow-bg" aria-hidden="true"><div class="ow-bg-img"/><div class="ow-bg-shade ow-bg-shade-strong"/></div>
+            <header class="ow-topbar">
+                <a class="ow-back" href="/overwatch/pases">‹ Pases de batalla</a>
+                <div class="ow-top-title">EVENTOS</div>
+                <nav class="ow-top-actions">
+                    <a href="/overwatch/novedades" class="ow-link">Novedades</a>
+                    <a t-if="is_manager" href="/odoo/action-overwatch.action_events" class="ow-link">Gestionar</a>
+                </nav>
+            </header>
+            <main class="ow-seasons-main">
+                <h1 class="ow-h1">Activos ahora</h1>
+                <div t-if="activos" class="ow-event-list"><t t-foreach="activos" t-as="e"><t t-call="overwatch.event_card" e="e"/></t></div>
+                <p t-else="" class="ow-muted">No hay ningún evento activo ahora mismo.</p>
+                <h2 class="ow-h1">Por empezar</h2>
+                <div t-if="proximos" class="ow-event-list"><t t-foreach="proximos" t-as="e"><t t-call="overwatch.event_card" e="e"/></t></div>
+                <p t-else="" class="ow-muted">Aún no se ha anunciado ninguno. Se comprueba cada día.</p>
+                <t t-if="sin_fechas">
+                    <h2 class="ow-h1">Esta temporada, sin fechas confirmadas</h2>
+                    <p class="ow-muted">La wiki los incluye en la temporada en curso pero no da sus fechas: pueden haber
+                        terminado ya o no haber empezado.</p>
+                    <div class="ow-event-list"><t t-foreach="sin_fechas" t-as="e"><t t-call="overwatch.event_card" e="e"/></t></div>
+                </t>
+                <t t-if="pasados">
+                    <h2 class="ow-h1">Terminados</h2>
+                    <div class="ow-event-list ow-event-list-past"><t t-foreach="pasados" t-as="e"><t t-call="overwatch.event_card" e="e"/></t></div>
+                </t>
+                <dialog class="ow-zoom" aria-label="Imagen ampliada">
+                    <div class="ow-zoom-stage"><img alt=""/></div>
+                    <div class="ow-zoom-bar">
+                        <button type="button" class="ow-btn" data-zoom="-1" aria-label="Alejar">−</button>
+                        <button type="button" class="ow-btn" data-zoom="0">Ajustar</button>
+                        <button type="button" class="ow-btn" data-zoom="1" aria-label="Acercar">+</button>
+                        <span class="ow-muted">Rueda o doble clic para acercar · arrastra para moverte</span>
+                        <button type="button" class="ow-btn" data-close="">Cerrar</button>
+                    </div>
+                </dialog>
+                <p class="ow-muted ow-seasons-source">Eventos y fechas de la <a href="https://overwatch.weirdgloop.org/w/Season" target="_blank" rel="noopener">Overwatch Wiki</a>
+                    (Weird Gloop, <a href="https://creativecommons.org/licenses/by-sa/3.0/" target="_blank" rel="noopener">CC BY-SA</a>).
+                    Se comprueba cada día.</p>
+            </main>
         </t>
     </template>
 </odoo>

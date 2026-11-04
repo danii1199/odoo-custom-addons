@@ -1,0 +1,205 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Temporadas con su pase de batalla (se importan de la wiki con «Actualizar catálogo»; aquí se retocan). -->
+<odoo>
+    <record id="view_season_list" model="ir.ui.view">
+        <field name="name">ow.season.list</field>
+        <field name="model">ow.season</field>
+        <field name="arch" type="xml">
+            <list decoration-success="state == 'current'" decoration-muted="state == 'upcoming'">
+                <header>
+                    <button name="action_check_updates" type="object" string="Buscar actualizaciones" class="btn-primary"
+                            display="always" groups="overwatch.group_ow_manager"
+                            help="Trae de internet los cambios de los héroes (vida, habilidades y sus números) y los pases nuevos."/>
+                </header>
+                <field name="sequence" optional="hide"/>
+                <field name="name"/>
+                <field name="arc" optional="show"/>
+                <field name="date_start"/>
+                <field name="date_end"/>
+                <field name="new_hero_ids" widget="many2many_tags"/>
+                <field name="item_count" string="Recompensas"/>
+                <field name="state"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_season_form" model="ir.ui.view">
+        <field name="name">ow.season.form</field>
+        <field name="model">ow.season</field>
+        <field name="arch" type="xml">
+            <form>
+                <header>
+                    <field name="state" widget="statusbar"/>
+                </header>
+                <sheet>
+                    <field name="image" widget="image" class="oe_avatar"/>
+                    <div class="oe_title"><h1><field name="name"/></h1></div>
+                    <group>
+                        <group>
+                            <field name="arc"/>
+                            <field name="year"/>
+                            <field name="number"/>
+                            <field name="subtitle"/>
+                            <field name="theme"/>
+                        </group>
+                        <group>
+                            <field name="date_start"/>
+                            <field name="date_end"/>
+                            <field name="dates_text"/>
+                            <field name="new_hero_ids" widget="many2many_tags"/>
+                            <field name="new_heroes_text"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Míticos del pase" name="rewards">
+                            <field name="reward_ids">
+                                <list editable="bottom">
+                                    <field name="sequence" widget="handle"/>
+                                    <field name="kind"/>
+                                    <field name="name"/>
+                                    <field name="hero_id"/>
+                                    <field name="hero_text" optional="hide"/>
+                                    <field name="cosmetic_id" domain="[('hero_id', '=', hero_id), ('type', '=', 'skin')]"/>
+                                    <field name="media_url" widget="url" optional="hide"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Todas las recompensas" name="items">
+                            <field name="item_ids">
+                                <list editable="bottom">
+                                    <field name="section" optional="show"/>
+                                    <field name="tier"/>
+                                    <field name="track" optional="hide"/>
+                                    <field name="kind"/>
+                                    <field name="rarity" decoration-info="rarity == 'rare'" decoration-warning="rarity == 'legendary'" decoration-danger="rarity == 'mythic'"/>
+                                    <field name="name"/>
+                                    <field name="hero_id"/>
+                                    <field name="cosmetic_id" optional="hide"/>
+                                    <field name="media_url" widget="url" optional="hide"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Eventos" name="events">
+                            <field name="event_ids">
+                                <list editable="bottom">
+                                    <field name="name"/>
+                                    <field name="kind"/>
+                                    <field name="date_start"/>
+                                    <field name="date_end"/>
+                                    <field name="approx"/>
+                                    <field name="state"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Origen" name="origin">
+                            <group>
+                                <field name="key"/>
+                                <field name="sequence"/>
+                                <field name="image_url" widget="url"/>
+                                <field name="wiki_page"/>
+                            </group>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- Novedades: lo que ha cambiado en cada búsqueda de actualizaciones -->
+    <record id="view_change_list" model="ir.ui.view">
+        <field name="name">ow.change.list</field>
+        <field name="model">ow.change</field>
+        <field name="arch" type="xml">
+            <list create="false" decoration-success="kind in ('hero_new', 'season_new')">
+                <header>
+                    <button name="action_check_updates" type="object" string="Buscar actualizaciones" class="btn-primary"
+                            display="always" groups="overwatch.group_ow_manager"
+                            help="Trae de internet los cambios de los héroes (vida, habilidades y sus números) y los pases nuevos."/>
+                </header>
+                <field name="create_date" string="Fecha"/>
+                <field name="kind"/>
+                <field name="hero_id"/>
+                <field name="season_id" optional="hide"/>
+                <field name="what"/>
+                <field name="old_value"/>
+                <field name="new_value"/>
+                <field name="batch" optional="hide"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_change_search" model="ir.ui.view">
+        <field name="name">ow.change.search</field>
+        <field name="model">ow.change</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="what"/>
+                <field name="hero_id"/>
+                <field name="season_id"/>
+                <filter name="heroes" string="Héroes y habilidades" domain="[('kind', 'in', ('hero_new', 'hero', 'ability'))]"/>
+                <filter name="pases" string="Pases" domain="[('kind', 'in', ('season_new', 'season'))]"/>
+                <group>
+                    <filter name="by_batch" string="Búsqueda" context="{'group_by': 'batch'}"/>
+                    <filter name="by_hero" string="Héroe" context="{'group_by': 'hero_id'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_changes" model="ir.actions.act_window">
+        <field name="name">Novedades</field>
+        <field name="res_model">ow.change</field>
+        <field name="view_mode">list</field>
+        <field name="context">{'search_default_by_batch': 1}</field>
+        <field name="help" type="html"><p class="o_view_nocontent_smiling_face">Aún no hay novedades</p>
+            <p>Pulsa «Buscar actualizaciones»: se apunta aquí lo que cambie (vida de un héroe, enfriamiento de una
+               habilidad, pases nuevos…).</p></field>
+    </record>
+
+    <record id="view_event_list" model="ir.ui.view">
+        <field name="name">ow.event.list</field>
+        <field name="model">ow.event</field>
+        <field name="arch" type="xml">
+            <list editable="bottom" decoration-success="state == 'active'" decoration-info="state == 'upcoming'"
+                  decoration-muted="state == 'past'">
+                <field name="name"/>
+                <field name="kind"/>
+                <field name="season_id"/>
+                <field name="date_start"/>
+                <field name="date_end"/>
+                <field name="approx"/>
+                <field name="state"/>
+                <field name="image_url" widget="url" optional="hide"/>
+                <field name="wiki_page" optional="hide"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_event_search" model="ir.ui.view">
+        <field name="name">ow.event.search</field>
+        <field name="model">ow.event</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="name"/>
+                <field name="season_id"/>
+                <filter name="activos" string="Activos" domain="[('state', '=', 'active')]"/>
+                <filter name="proximos" string="Por empezar" domain="[('state', '=', 'upcoming')]"/>
+                <group>
+                    <filter name="by_season" string="Temporada" context="{'group_by': 'season_id'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_events" model="ir.actions.act_window">
+        <field name="name">Eventos</field>
+        <field name="res_model">ow.event</field>
+        <field name="view_mode">list</field>
+    </record>
+
+    <record id="action_seasons" model="ir.actions.act_window">
+        <field name="name">Pases de batalla</field>
+        <field name="res_model">ow.season</field>
+        <field name="view_mode">list,form</field>
+    </record>
+</odoo>

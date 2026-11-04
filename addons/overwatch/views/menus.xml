@@ -13,6 +13,9 @@
     <menuitem id="menu_web" name="Abrir la web" parent="menu_root" action="action_open_web" sequence="1"/>
     <menuitem id="menu_heroes" name="Héroes" parent="menu_root" action="action_heroes" sequence="10"/>
     <menuitem id="menu_cosmetics" name="Cosméticos" parent="menu_root" action="action_cosmetics" sequence="20"/>
+    <menuitem id="menu_seasons" name="Pases de batalla" parent="menu_root" action="action_seasons" sequence="30"/>
+    <menuitem id="menu_events" name="Eventos" parent="menu_root" action="action_events" sequence="35"/>
+    <menuitem id="menu_changes" name="Novedades" parent="menu_root" action="action_changes" sequence="40"/>
     <menuitem id="menu_config" name="Configuración" parent="menu_root" sequence="90" groups="group_ow_manager"/>
     <menuitem id="menu_import" name="Actualizar catálogo" parent="menu_config" action="action_import_wizard" sequence="1"/>
     <menuitem id="menu_prefs" name="Favoritos de los usuarios" parent="menu_config" action="action_prefs" sequence="2"/>

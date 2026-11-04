@@ -1,4 +1,4 @@
-"""Lectura del catálogo de cosméticos de la wiki de Overwatch (overwatch.fandom.com), solo por su API de MediaWiki
+"""Lectura del catálogo de cosméticos de la wiki de Overwatch, solo por su API de MediaWiki
 y con un User-Agent honesto. Las imágenes NO se descargan (su CDN no lo permite desde un servidor): se guarda la URL
 y la carga el navegador de quien mira la página.
 
@@ -12,7 +12,11 @@ import time
 
 import requests
 
-API = "https://overwatch.fandom.com/api.php"
+# Wiki de la comunidad en Weird Gloop (2026-11-04): la de Fandom dejó de actualizarse (sin las tablas de los pases
+# desde la Temporada 4 de 2026, sin D.Mon ni Doctrine, sin imágenes de lo reciente). Mismo formato de plantillas.
+# Licencia CC BY-SA: las páginas de la web lo citan.
+API = "https://overwatch.weirdgloop.org/api.php"
+WIKI_URL = "https://overwatch.weirdgloop.org/w/"
 USER_AGENT = "Odoo-overwatch/1.0 (modulo personal de Odoo; catalogo de cosmeticos)"
 
 TIPOS = {  # tipo → sufijo de la plantilla

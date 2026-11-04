@@ -17,6 +17,7 @@ SUBROLES = {
 
 class OwHero(models.Model):
     _name = "ow.hero"
+    _inherit = ["ow.update.mixin"]
     _description = "Héroe de Overwatch"
     _order = "role_order, name"
 
@@ -105,6 +106,13 @@ class OwHeroAbility(models.Model):
     video_url = fields.Char("Vídeo (mp4)")
     video_webm_url = fields.Char("Vídeo (webm)")
     thumbnail_url = fields.Char("Miniatura del vídeo")
+    stats = fields.Json("Datos", help="[[etiqueta, valor], …] de la wiki: enfriamiento, daño, duración, munición…")
+    stats_text = fields.Text("Datos (texto)", compute="_compute_stats_text")
+
+    @api.depends("stats")
+    def _compute_stats_text(self):
+        for a in self:
+            a.stats_text = "\n".join(f"{k}: {v}" for k, v in (a.stats or [])) or False
 
     @api.depends("kind")
     def _compute_kind_order(self):

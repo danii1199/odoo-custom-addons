@@ -26,6 +26,11 @@
         <field name="model">ow.hero</field>
         <field name="arch" type="xml">
             <list>
+                <header>
+                    <button name="action_check_updates" type="object" string="Buscar actualizaciones" class="btn-primary"
+                            display="always" groups="overwatch.group_ow_manager"
+                            help="Trae de internet los cambios de los héroes (vida, habilidades y sus números) y los pases nuevos."/>
+                </header>
                 <field name="portrait" widget="image" options="{'size': [32, 32]}" string=""/>
                 <field name="name"/>
                 <field name="role"/>
@@ -77,6 +82,7 @@
                                     <field name="kind"/>
                                     <field name="name"/>
                                     <field name="description"/>
+                                    <field name="stats_text" optional="show"/>
                                     <field name="icon_url" optional="hide"/>
                                     <field name="video_url" optional="hide"/>
                                 </list>

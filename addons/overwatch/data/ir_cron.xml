@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Búsqueda diaria de actualizaciones (2026-11-04; antes semanal, la cambió la migración 20.0.1.6.0), a las 5:00.
+     Héroes, números de las habilidades, cosméticos, pases de batalla y eventos; lo que cambie queda en Novedades. noupdate: si cambias la hora
+     o la desactivas desde Ajustes → Técnico → Acciones planificadas, una actualización del módulo no lo pisa. -->
+<odoo noupdate="1">
+    <record id="cron_check_updates" model="ir.cron">
+        <field name="name">Overwatch: buscar actualizaciones (diaria)</field>
+        <field name="model_id" ref="model_ow_change"/>
+        <field name="state">code</field>
+        <field name="code">model._cron_check_updates()</field>
+        <field name="user_id" ref="base.user_root"/>
+        <field name="interval_number">1</field>
+        <field name="interval_type">days</field>
+        <field name="nextcall" eval="(DateTime.now() + relativedelta(days=1)).strftime('%Y-%m-%d 04:00:00')"/>
+    </record>
+</odoo>

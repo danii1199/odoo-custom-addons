@@ -3,16 +3,24 @@
 - Héroes: por `key`. Se actualizan sus datos y se rehacen sus habilidades y capítulos (vienen completos de la API).
   El retrato se descarga si falta (o siempre con `reload_images`). Nunca se borran héroes: los que ya no salen se
   dejan como están.
+- Números de las habilidades y ventajas (enfriamiento, daño…): de la página del héroe en la wiki (detalles.py),
+  emparejados por el nombre en inglés de OverFast. Si la wiki falla, se conservan los que había.
+- Novedades (ow.change): al actualizar un héroe que ya existía se apunta lo que cambia (vida, armadura, escudos,
+  habilidades nuevas o retiradas, cada dato de una habilidad y su descripción). Todas con el mismo `batch`.
 - Cosméticos: por (héroe, tipo, archivo de la wiki). Los nuevos se crean y los existentes se actualizan (rareza,
   origen, URL), sin tocar la imagen propia si la hay. Nunca se borran.
 Gratis y sin claves. User-Agent honesto; sin saltarse ninguna protección."""
 import base64
 import logging
+import re
 import time
 
 import requests
 
-from . import wiki
+from odoo import fields
+
+from ..models.hero import ROLES
+from . import detalles, wiki
 
 _logger = logging.getLogger(__name__)
 
@@ -24,8 +32,11 @@ WIKI_NAMES = {"soldier-76": "Soldier: 76", "jetpack-cat": "Jetpack Cat"}
 
 
 class Importer:
-    def __init__(self, env, reload_images=False, cosmetics=True, heroes=None, log=None):
+    def __init__(self, env, reload_images=False, cosmetics=True, heroes=None, log=None, details=True, batch=None):
         self.env = env
+        self.details = details
+        self.batch = batch or fields.Datetime.to_string(fields.Datetime.now())
+        self.changes = 0
         self.reload_images = reload_images
         self.cosmetics = cosmetics
         self.only = set(heroes or [])
@@ -56,7 +67,8 @@ class Importer:
         lista_es = self._get("/heroes", locale=LOCALE)
         nombres_en = {h["key"]: h["name"] for h in self._get("/heroes")}
         Hero = self.env["ow.hero"].with_context(active_test=False)
-        sesion_wiki = wiki.nueva_sesion() if self.cosmetics else None
+        sesion_wiki = wiki.nueva_sesion() if self.cosmetics or self.details else None
+        self.sesion_wiki = sesion_wiki
         for resumen in lista_es:
             key = resumen["key"]
             if self.only and key not in self.only:
@@ -64,14 +76,69 @@ class Importer:
             try:
                 with self.env.cr.savepoint():  # si falla, no queda el héroe a medias
                     hero = self._import_hero(Hero, key, resumen, nombres_en.get(key, resumen["name"]))
-                    if sesion_wiki:
+                    if self.cosmetics:
                         self._import_cosmetics(sesion_wiki, hero)
                 if self.env.context.get("ow_commit"):
                     self.env.cr.commit()
             except Exception as e:  # un héroe que falle no para el resto
                 _logger.exception("Error importando %s", key)
                 self.stats["errors"].append(f"{key}: {e}")
+        self.stats["changes"] = self.changes
         return self.stats
+
+    # ------------------------------------------------------------------ novedades
+
+    def _novedad(self, kind, what, old=None, new=None, hero=None):
+        self.env["ow.change"].create({"batch": self.batch, "kind": kind, "what": what, "hero_id": hero.id if hero else False,
+                                      "old_value": "" if old is None else str(old), "new_value": "" if new is None else str(new)})
+        self.changes += 1
+
+    @staticmethod
+    def _clave(nombre):
+        return re.sub(r"[^a-z0-9]+", "", (nombre or "").lower())
+
+    def _numeros(self, key, nombre_wiki, habilidades, antes):
+        """Pone `stats` a cada habilidad/ventaja: de la wiki por su nombre en inglés (OverFast sin locale, mismo orden);
+        si no se encuentra, conserva los de antes."""
+        por_nombre = {}
+        if self.details and self.sesion_wiki:
+            try:
+                en = self._get(f"/heroes/{key}")
+                nombres_en = [a.get("name") for a in en.get("abilities") or []]
+                perks_en = en.get("perks") or {}
+                nombres_en += [p.get("name") for p in perks_en.get("minor") or []]
+                nombres_en += [p.get("name") for p in perks_en.get("major") or []]
+                wiki_stats = {self._clave(n): v for n, v in detalles.de_heroe(self.sesion_wiki, nombre_wiki).items()}
+                por_nombre = {i: wiki_stats.get(self._clave(n)) for i, n in enumerate(nombres_en)}
+            except Exception as e:  # sin números de la wiki no se para la importación
+                self.stats["errors"].append(f"datos de habilidades de {key}: {e}")
+        for i, h in enumerate(habilidades):
+            nuevos = por_nombre.get(i)
+            h["stats"] = nuevos if nuevos else (antes.get((h["kind"], h["name"]), {}).get("stats") or False)
+
+    def _comparar(self, hero, antes_hero, antes, habilidades):
+        for campo, etiqueta in (("health", "Vida"), ("armor", "Armadura"), ("shields", "Escudos")):
+            if antes_hero[campo] != hero[campo]:
+                self._novedad("hero", etiqueta, antes_hero[campo], hero[campo], hero)
+        if not antes:
+            return
+        nuevas = {(h["kind"], h["name"]): h for h in habilidades}
+        for clave, h in nuevas.items():
+            viejo = antes.get(clave)
+            if not viejo:
+                self._novedad("ability", f"{h['name']}: nueva", None, h.get("description") or "", hero)
+                continue
+            if (viejo["description"] or "") != (h.get("description") or ""):
+                self._novedad("ability", f"{h['name']} · descripción", viejo["description"], h.get("description"), hero)
+            # La primera vez que llegan los números no es una novedad; tampoco tras cambiar de wiki
+            # (contexto ow_fuente_nueva: cambia la redacción, no el juego).
+            if viejo["stats"] and not self.env.context.get("ow_fuente_nueva"):
+                v, n = dict(viejo["stats"]), dict(h.get("stats") or [])
+                for etiqueta in list(dict.fromkeys([*v, *n])):
+                    if v.get(etiqueta) != n.get(etiqueta) and n:
+                        self._novedad("ability", f"{h['name']} · {etiqueta}", v.get(etiqueta, "—"), n.get(etiqueta, "—"), hero)
+        for clave in antes.keys() - nuevas.keys():
+            self._novedad("ability", f"{clave[1]}: retirada", None, None, hero)
 
     @staticmethod
     def _fondo(fondos):
@@ -118,6 +185,9 @@ class Importer:
                       "picture_url": c.get("picture")} for i, c in enumerate(story.get("chapters") or [])]
 
         hero = Hero.search([("key", "=", key)], limit=1)
+        antes = {(a.kind, a.name): {"description": a.description, "stats": a.stats} for a in hero.ability_ids}
+        antes_hero = {c: hero[c] for c in ("health", "armor", "shields")} if hero else None
+        self._numeros(key, (hero.wiki_name if hero else None) or WIKI_NAMES.get(key, nombre_en), habilidades, antes)
         if hero:
             vals.pop("key")
             hero.write(vals)
@@ -126,10 +196,14 @@ class Importer:
             vals["wiki_name"] = WIKI_NAMES.get(key, nombre_en)
             hero = Hero.create(vals)
             self.stats["heroes_new"] += 1
+            if self.env["ow.hero"].with_context(active_test=False).search_count([]) > 1:  # no en la primera carga
+                self._novedad("hero_new", hero.name, None, dict(ROLES).get(hero.role), hero)
         hero.ability_ids.unlink()
         hero.chapter_ids.unlink()
         hero.write({"ability_ids": [(0, 0, v) for v in habilidades],
                     "chapter_ids": [(0, 0, v) for v in capitulos]})
+        if antes_hero is not None:
+            self._comparar(hero, antes_hero, antes, habilidades)
         if vals.get("portrait_url") and (self.reload_images or not hero.portrait):
             try:
                 hero.portrait = self._download(vals["portrait_url"])

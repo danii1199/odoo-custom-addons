@@ -5,7 +5,8 @@
    - Galería: casillas con el color de su rareza, filtro por rareza y buscador; clic = vista grande a la derecha
      (imagen o vídeo). Las imágenes y vídeos vienen de la wiki: se cargan solo al verse (IntersectionObserver) y
      los vídeos se reproducen al pasar el ratón. Si una no carga, la casilla muestra la inicial.
-   - Favorito: el mismo botón que en la selección. */
+   - Favorito: el mismo botón que en la selección.
+   - Enlace directo a un cosmético: #aspectos/<id> (lo usan los pases de batalla) abre su pestaña con él elegido. */
 (function () {
     "use strict";
     const data = JSON.parse(document.getElementById("ow-data").textContent);
@@ -18,7 +19,13 @@
     const FROM_SLUG = Object.fromEntries(Object.entries(SLUGS).map(([k, v]) => [v, k]));
 
     // ---------------------------------------------------------------- pestañas
-    function openTab(tab, { push = true } = {}) {
+    /* «#aspectos/123» → {tab: "skin", id: 123} */
+    function ruta() {
+        const [slug, id] = decodeURIComponent(location.hash.slice(1)).split("/");
+        return { tab: FROM_SLUG[slug] || "summary", id: +id || null };
+    }
+
+    function openTab(tab, { push = true, id = null } = {}) {
         const btn = $(`.ow-tabs [data-tab="${tab}"]`);
         if (!btn || btn.disabled) tab = "summary";
         $$(".ow-tabs button").forEach((b) => b.classList.toggle("active", b.dataset.tab === tab));
@@ -30,11 +37,20 @@
         }
         const video = $(".ow-ability-video");
         if (video) tab === "summary" ? video.play().catch(() => {}) : video.pause();
-        if (isCosmetic) locker.show(tab);
+        if (isCosmetic) locker.show(tab, id);
         if (push) history.replaceState(null, "", `#${SLUGS[tab]}`);
     }
 
     // ---------------------------------------------------------------- resumen
+    /* Datos rápidos bajo cada habilidad (enfriamiento, carga de la definitiva, munición, cargas); todos, al elegirla. */
+    const RAPIDOS = { "Enfriamiento": "⏱ ", "Carga de la definitiva": "★ ", "Munición": "▮ ", "Cargas": "× " };
+    function chips(a) {
+        const datos = (a.stats || []).filter(([k]) => k in RAPIDOS);
+        if (!datos.length) return "";
+        return `<span class="ow-ab-chips">${datos.map(([k, v]) =>
+            `<em title="${esc(k)}">${RAPIDOS[k]}${esc(v)}</em>`).join("")}</span>`;
+    }
+
     function buildAbilities() {
         const player = $(".ow-ability-video");
         const caption = $(".ow-ability-caption");
@@ -43,7 +59,7 @@
             list.innerHTML = items
                 .map((a, i) => `<button type="button" class="ow-ab" data-i="${data.abilities.indexOf(a)}">
                     ${a.icon ? `<img src="${esc(a.icon)}" alt="">` : "<span></span>"}
-                    <span><strong>${esc(a.name)}</strong><small>${esc(a.description)}</small></span></button>`)
+                    <span><strong>${esc(a.name)}</strong><small>${esc(a.description)}</small>${chips(a)}</span></button>`)
                 .join("");
         }
         if (!data.abilities.some((a) => a.kind.startsWith("perk"))) {
@@ -54,6 +70,10 @@
             $$(".ow-ab").forEach((b) => b.classList.toggle("active", b === btn));
             $("strong", caption).textContent = a.name;
             $("p", caption).textContent = a.description;
+            let dl = $(".ow-stats", caption);
+            if (!dl) { dl = document.createElement("dl"); dl.className = "ow-stats"; caption.appendChild(dl); }
+            dl.innerHTML = (a.stats || []).map(([k, v]) => `<dt>${esc(k)}</dt><dd>${esc(v)}</dd>`).join("");
+            dl.hidden = !(a.stats || []).length;
             if (a.video || a.webm) {
                 player.poster = a.thumb || "";
                 player.innerHTML = (a.webm ? `<source src="${esc(a.webm)}" type="video/webm">` : "") + (a.video ? `<source src="${esc(a.video)}" type="video/mp4">` : "");
@@ -159,7 +179,7 @@
             $(".ow-preview-source").textContent = c.source || "";
         }
 
-        function show(t) {
+        function show(t, id) {
             if (type !== t) {
                 type = t;
                 rarity = "";
@@ -175,7 +195,22 @@
                     render();
                 }));
             }
+            if (id) {  // enlace directo: ese cosmético elegido y a la vista
+                const c = (data.cosmetics[t] || []).find((x) => x.id === id);
+                if (c) {
+                    rarity = "";
+                    search.value = "";
+                    $$("button", chips).forEach((x) => x.classList.toggle("active", !x.dataset.r));
+                    selected = c;
+                }
+            }
             render();
+            if (id && selected && selected.id === id) {
+                pick(selected);
+                const btn = $(`.ow-item[data-id="${id}"]`, grid);
+                if (btn) btn.scrollIntoView({ block: "center", behavior: "smooth" });
+                if (window.matchMedia("(max-width: 900px)").matches) $(".ow-locker-preview").scrollIntoView({ behavior: "smooth" });
+            }
         }
         search.addEventListener("input", render);
         return { show };
@@ -211,6 +246,7 @@
     $$(".ow-tabs button").forEach((b) => b.addEventListener("click", () => openTab(b.dataset.tab)));
     buildAbilities();
     bindFav();
-    openTab(FROM_SLUG[location.hash.slice(1)] || "summary", { push: false });
-    window.addEventListener("hashchange", () => openTab(FROM_SLUG[location.hash.slice(1)] || "summary", { push: false }));
+    const abrir = () => { const r = ruta(); openTab(r.tab, { push: false, id: r.id }); };
+    abrir();
+    window.addEventListener("hashchange", abrir);
 })();

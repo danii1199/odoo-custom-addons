@@ -386,3 +386,197 @@
     .ow-locker-preview { max-height: none; overflow: visible; }
     .ow-preview-media { max-height: 55vh; }
 }
+
+/* ---------------- Pases de batalla (/overwatch/pases) ---------------- */
+.ow-seasons-main { position: relative; z-index: 2; max-width: 1180px; margin: 0 auto; padding: 8px 28px 60px; }
+.ow-h1 { font-family: var(--ow-head); font-weight: 800; font-style: italic; font-size: 34px; text-transform: uppercase;
+         letter-spacing: .03em; margin: 26px 0 12px; }
+.ow-h1 small { font-size: 18px; color: var(--ow-muted); font-style: normal; margin-left: 6px; }
+.ow-season-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 16px; }
+.ow-season {
+    display: flex; flex-direction: column; overflow: hidden;
+    background: var(--ow-panel); border: 1px solid var(--ow-line);
+    clip-path: polygon(14px 0, 100% 0, 100% calc(100% - 14px), calc(100% - 14px) 100%, 0 100%, 0 14px);
+}
+.ow-season-current { flex-direction: row; border-color: var(--ow-orange); background: rgba(249, 158, 26, .08); }
+.ow-season-img { position: relative; aspect-ratio: 16 / 9; background: linear-gradient(135deg, #16294d, #0b1426); flex: none; }
+.ow-season-current .ow-season-img { width: 46%; aspect-ratio: auto; min-height: 280px; }
+.ow-season-img img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.ow-season-num {
+    position: absolute; left: 12px; bottom: 6px; font-family: var(--ow-head); font-weight: 800; font-style: italic;
+    font-size: 64px; line-height: 1; color: #fff; text-shadow: 0 2px 12px rgba(0, 0, 0, .7);
+}
+.ow-season-body { padding: 14px 18px 18px; display: flex; flex-direction: column; gap: 8px; min-width: 0; flex: 1; }
+.ow-season-arc { font-family: var(--ow-head); font-weight: 600; letter-spacing: .16em; text-transform: uppercase;
+                 font-size: 14px; color: var(--ow-orange); }
+.ow-season-title { font-family: var(--ow-head); font-weight: 700; font-style: italic; font-size: 26px; text-transform: uppercase;
+                   margin: 0; line-height: 1.05; }
+.ow-season-current .ow-season-title { font-size: 38px; }
+.ow-season-dates { margin: 0; color: var(--ow-muted); }
+.ow-season-theme { margin: 0; font-size: 14px; color: var(--ow-muted); }
+.ow-season-rewards { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px; margin-top: 4px; }
+.ow-reward { display: flex; gap: 10px; align-items: center; background: var(--ow-panel-2);
+             border-left: 3px solid var(--r-mythic); padding: 6px 8px 6px 6px; min-width: 0; }
+.ow-reward-media { position: relative; width: 54px; height: 54px; flex: none; background: rgba(255, 79, 123, .15);
+                   display: grid; place-items: center; overflow: hidden; }
+.ow-reward-media img, .ow-reward-media video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; z-index: 1; }
+.ow-reward-ini { font-family: var(--ow-head); font-weight: 800; font-size: 24px; color: var(--r-mythic); }
+.ow-reward-info { display: flex; flex-direction: column; min-width: 0; line-height: 1.2; }
+.ow-reward-info small { font-size: 11px; text-transform: uppercase; letter-spacing: .08em; color: var(--r-mythic); }
+.ow-reward-info strong { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ow-reward-info a, .ow-reward-info span { font-size: 13px; color: var(--ow-muted); }
+.ow-reward-info a:hover { color: #fff; }
+.ow-season-current .ow-season-rewards { grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); }
+.ow-season-current .ow-reward-media { width: 76px; height: 76px; }
+.ow-season-heroes { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-top: 4px; }
+.ow-season-label { font-size: 12px; text-transform: uppercase; letter-spacing: .1em; color: var(--ow-muted); }
+.ow-season-hero { display: inline-flex; align-items: center; gap: 6px; padding: 2px 10px 2px 2px; background: var(--ow-panel-2);
+                  font-weight: 600; font-size: 14px; }
+.ow-season-hero img { width: 26px; height: 26px; object-fit: cover; }
+a.ow-season-hero:hover { background: rgba(249, 158, 26, .2); }
+.ow-seasons-source { margin-top: 30px; font-size: 13px; }
+.ow-seasons-source a { text-decoration: underline; }
+@media (max-width: 760px) {
+    .ow-seasons-main { padding: 4px 12px 40px; }
+    .ow-season-current { flex-direction: column; }
+    .ow-season-current .ow-season-img { width: auto; min-height: 0; aspect-ratio: 16 / 9; }
+    .ow-season-current .ow-season-title { font-size: 28px; }
+    .ow-season-list { grid-template-columns: 1fr; }
+    .ow-topbar { grid-template-columns: 1fr auto; padding: 10px 12px; }
+    .ow-seasons .ow-top-title { display: none; }
+}
+
+/* Datos de las habilidades (de la wiki) */
+.ow-ab-chips { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 4px; }
+.ow-ab-chips em { font-style: normal; font-size: 12px; font-weight: 600; padding: 1px 7px; background: rgba(255, 255, 255, .08);
+                  color: var(--ow-orange-2); white-space: nowrap; max-width: 100%; overflow: hidden; text-overflow: ellipsis; }
+.ow-stats { display: grid; grid-template-columns: max-content 1fr; gap: 4px 14px; margin: 10px 0 0; font-size: 14px; }
+.ow-stats dt { color: var(--ow-muted); font-weight: 500; }
+.ow-stats dd { margin: 0; color: #e8eef7; }
+
+/* ---------------- Todas las recompensas de un pase (/overwatch/pases/<clave>) ---------------- */
+.ow-mt0 { margin-top: 4px; }
+.ow-season-all { align-self: flex-start; margin-top: 6px; }
+.ow-season-all small { opacity: .75; margin-left: 4px; }
+.ow-season-noitems { font-size: 14px; margin: 4px 0 0; }
+.ow-pass-filters { display: flex; flex-wrap: wrap; gap: 6px; margin: 14px 0 18px; }
+.ow-pass-filters button { background: var(--ow-panel-2); border: 1px solid var(--ow-line); padding: 5px 12px; cursor: pointer;
+                          font-weight: 600; font-size: 14px; }
+.ow-pass-filters button small { color: var(--ow-muted); font-weight: 500; }
+.ow-pass-filters button.active { background: var(--ow-orange); border-color: var(--ow-orange); color: #1b1203; }
+.ow-pass-filters button.active small { color: inherit; }
+.ow-pass { display: flex; flex-direction: column; gap: 4px; }
+.ow-pass-head, .ow-pass-row { display: grid; grid-template-columns: 56px 1fr 1fr; gap: 8px; align-items: stretch; }
+.ow-pass-head { font-family: var(--ow-head); font-weight: 700; text-transform: uppercase; letter-spacing: .1em;
+                color: var(--ow-muted); font-size: 14px; padding: 0 4px; }
+.ow-pass-head span:last-child { color: var(--ow-orange); }
+.ow-pass-row[hidden], .ow-pass-prestige-item[hidden], .ow-pitem[hidden] { display: none; }
+.ow-pass-tier { display: grid; place-items: center; font-family: var(--ow-head); font-weight: 800; font-style: italic;
+                font-size: 24px; background: var(--ow-panel); }
+.ow-pass-cell { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+.ow-pitem { --rc: var(--r-common); display: flex; gap: 10px; align-items: center; min-width: 0;
+            background: var(--ow-panel); border-left: 3px solid var(--rc); padding: 5px 8px 5px 5px; }
+.ow-pass-premium .ow-pitem { background: rgba(249, 158, 26, .07); }
+.ow-pitem[data-rarity=rare] { --rc: var(--r-rare); }
+.ow-pitem[data-rarity=epic] { --rc: var(--r-epic); }
+.ow-pitem[data-rarity=legendary] { --rc: var(--r-legendary); }
+.ow-pitem[data-rarity=mythic] { --rc: var(--r-mythic); }
+.ow-pitem-media { position: relative; width: 56px; height: 56px; flex: none; display: grid; place-items: center;
+                  background: rgba(255, 255, 255, .06); overflow: hidden; }
+.ow-pitem-media img, .ow-pitem-media video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; z-index: 1; }
+.ow-pitem[data-kind=icon] .ow-pitem-media img, .ow-pitem[data-kind=spray] .ow-pitem-media img,
+.ow-pitem[data-kind=charm] .ow-pitem-media img, .ow-pitem[data-kind=souvenir] .ow-pitem-media img { object-fit: contain; }
+.ow-pitem-ico { font-size: 22px; color: var(--rc); opacity: .8; }
+.ow-pitem-info { display: flex; flex-direction: column; min-width: 0; line-height: 1.25; }
+.ow-pitem-info strong { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ow-pitem-info small { color: var(--ow-muted); font-size: 12px; }
+.ow-pitem-info small a { text-decoration: underline; }
+.ow-pass-prestige { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 6px; }
+.ow-pass-prestige-item { display: grid; grid-template-columns: 56px 1fr; gap: 6px; }
+
+/* ---------------- Novedades (/overwatch/novedades) ---------------- */
+.ow-change-group { margin-top: 18px; }
+.ow-change-date { font-family: var(--ow-head); font-weight: 700; font-size: 20px; color: var(--ow-orange); margin: 0 0 8px; }
+.ow-change-list { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 4px; }
+.ow-change { display: grid; grid-template-columns: 140px 1fr auto; gap: 12px; align-items: center; padding: 8px 12px;
+             background: var(--ow-panel); border-left: 3px solid var(--ow-blue); }
+.ow-change-hero_new, .ow-change-season_new { border-left-color: var(--ow-support); }
+.ow-change-kind { font-size: 12px; text-transform: uppercase; letter-spacing: .08em; color: var(--ow-muted); }
+.ow-change-what a { font-weight: 700; margin-right: 6px; text-decoration: underline; }
+.ow-change-values { text-align: right; font-variant-numeric: tabular-nums; }
+.ow-change-values del { color: #ff8e8e; }
+.ow-change-values ins { color: #7df0b8; text-decoration: none; font-weight: 600; }
+@media (max-width: 760px) {
+    .ow-pass-head, .ow-pass-row { grid-template-columns: 38px 1fr 1fr; gap: 4px; }
+    .ow-pass-tier { font-size: 18px; }
+    .ow-pitem { gap: 6px; padding: 4px; }
+    .ow-pitem-media { width: 40px; height: 40px; }
+    .ow-pitem-info strong { font-size: 13px; white-space: normal; }
+    .ow-change { grid-template-columns: 1fr; gap: 2px; }
+    .ow-change-values { text-align: left; }
+}
+
+/* Recompensas que se pueden pulsar: enlace a la galería del héroe o vista grande */
+a.ow-pitem, button.ow-pitem, a.ow-reward { cursor: pointer; color: inherit; text-decoration: none; text-align: left;
+                                            border-top: 0; border-right: 0; border-bottom: 0; font: inherit; width: 100%; }
+a.ow-pitem:hover, button.ow-pitem:hover, a.ow-reward:hover { background: rgba(249, 158, 26, .18); }
+a.ow-pitem:focus-visible, button.ow-pitem:focus-visible, a.ow-reward:focus-visible { outline: 2px solid var(--ow-orange); outline-offset: 1px; }
+a.ow-pitem .ow-pitem-info strong::after, a.ow-reward .ow-reward-info strong::after { content: " ›"; color: var(--ow-orange); }
+.ow-pass-section { margin-top: 10px; }
+.ow-pass-section .ow-h2 { margin: 18px 0 8px; }
+.ow-pass-note { font-size: 14px; margin-top: 6px; }
+.ow-lightbox { --rc: var(--r-common); max-width: min(720px, 94vw); width: 100%; padding: 16px; border: 0;
+               border-top: 4px solid var(--rc); background: #0d1830; color: var(--ow-text, #f2f5fa); }
+.ow-lightbox::backdrop { background: rgba(3, 7, 16, .8); }
+.ow-lightbox-media { display: grid; place-items: center; min-height: 200px; background: rgba(255, 255, 255, .04); }
+.ow-lightbox-media img, .ow-lightbox-media video { max-width: 100%; max-height: 70vh; object-fit: contain; }
+.ow-lightbox-name { margin: 12px 0; font-weight: 600; }
+
+/* Cartel ampliable y ampliador con zoom */
+img.ow-zoomable { cursor: zoom-in; }
+img.ow-zoomable:focus-visible { outline: 2px solid var(--ow-orange); outline-offset: 2px; }
+.ow-season-poster { display: block; width: min(420px, 100%); margin: 8px 0 14px; border: 1px solid var(--ow-line); }
+.ow-zoom { width: 96vw; max-width: 1400px; height: 92vh; max-height: none; padding: 0; border: 0; background: #050a14;
+           color: var(--ow-text, #f2f5fa); overflow: hidden; }
+.ow-zoom[open] { display: flex; flex-direction: column; }
+.ow-zoom::backdrop { background: rgba(3, 7, 16, .88); }
+.ow-zoom-stage { flex: 1; min-height: 0; display: grid; place-items: center; overflow: hidden; cursor: zoom-in;
+                 touch-action: none; user-select: none; }
+.ow-zoom-stage img { max-width: 100%; max-height: 100%; object-fit: contain; transform-origin: center center;
+                     transition: transform .08s ease-out; -webkit-user-drag: none; }
+.ow-zoom-stage.ow-dragging { cursor: grabbing; }
+.ow-zoom-stage.ow-dragging img { transition: none; }
+.ow-zoom-bar { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; padding: 10px 12px; background: #0b1426;
+               border-top: 1px solid var(--ow-line, rgba(255, 255, 255, .14)); }
+.ow-zoom-bar .ow-muted { flex: 1; font-size: 13px; color: #9fb0c8; }
+.ow-zoom-bar [data-zoom] { min-width: 44px; justify-content: center; }
+
+/* Eventos */
+.ow-events-strip { margin-bottom: 8px; }
+.ow-events-head { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; }
+.ow-event-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 12px; }
+.ow-event { display: flex; flex-direction: column; background: var(--ow-panel); border: 1px solid var(--ow-line);
+            border-top: 3px solid var(--ow-blue); overflow: hidden; }
+.ow-event-active { border-top-color: var(--ow-support); }
+.ow-event-upcoming { border-top-color: var(--ow-orange); }
+.ow-event-past { opacity: .7; }
+.ow-event-unconfirmed { border-top-color: var(--ow-muted); }
+.ow-event-unconfirmed .ow-event-state { color: var(--ow-muted); }
+.ow-event-img { position: relative; aspect-ratio: 16 / 7; background: linear-gradient(135deg, #16294d, #0b1426); }
+.ow-event-img img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.ow-event-body { padding: 10px 14px 12px; display: flex; flex-direction: column; gap: 3px; }
+.ow-event-state { font-size: 12px; text-transform: uppercase; letter-spacing: .1em; font-weight: 700; color: var(--ow-support); }
+.ow-event-upcoming .ow-event-state { color: var(--ow-orange); }
+.ow-event-past .ow-event-state { color: var(--ow-muted); }
+.ow-event-name { font-family: var(--ow-head); font-weight: 700; font-style: italic; font-size: 22px; text-transform: uppercase;
+                 margin: 0; line-height: 1.1; }
+.ow-event-dates, .ow-event-count, .ow-event-links { margin: 0; font-size: 14px; }
+.ow-event-dates { color: #dfe7f2; }
+.ow-event-count { color: var(--ow-orange-2); font-weight: 600; }
+.ow-event-links { color: var(--ow-muted); }
+.ow-event-links a { text-decoration: underline; }
+@media (max-width: 760px) {
+    .ow-zoom { width: 100vw; height: 100vh; }
+    .ow-zoom-bar .ow-muted { display: none; }
+    .ow-event-list { grid-template-columns: 1fr; }
+}
