@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_solicitud_list" model="ir.ui.view">
+        <field name="name">ig.solicitud.list</field>
+        <field name="model">ig.solicitud</field>
+        <field name="arch" type="xml">
+            <list editable="bottom" decoration-muted="state in ('hecha', 'resuelta')" decoration-info="state == 'abierta'">
+                <field name="username"/>
+                <field name="url" widget="url"/>
+                <field name="state"/>
+                <field name="requested_at" optional="show"/>
+                <field name="opened_at" optional="hide"/>
+                <field name="done_at" optional="show"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_solicitud_search" model="ir.ui.view">
+        <field name="name">ig.solicitud.search</field>
+        <field name="model">ig.solicitud</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="username"/>
+                <filter name="por_hacer" string="Por hacer" domain="[('state', 'in', ('pendiente', 'abierta'))]"/>
+                <filter name="hechas" string="Canceladas" domain="[('state', '=', 'hecha')]"/>
+                <filter name="resueltas" string="Ya no salen" domain="[('state', '=', 'resuelta')]"/>
+                <group>
+                    <filter name="g_state" string="Estado" context="{'group_by': 'state'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_solicitudes" model="ir.actions.act_window">
+        <field name="name">Solicitudes</field>
+        <field name="res_model">ig.solicitud</field>
+        <field name="view_mode">list</field>
+        <field name="context">{'search_default_por_hacer': 1}</field>
+        <field name="help" type="html">
+            <p>Importa tus solicitudes pendientes desde la web (Abrir la web).</p>
+        </field>
+    </record>
+</odoo>

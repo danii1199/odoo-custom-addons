@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="action_open_web" model="ir.actions.act_url">
+        <field name="name">Solicitudes IG</field>
+        <field name="url">/solicitudes-ig</field>
+        <field name="target">self</field>
+    </record>
+
+    <menuitem id="menu_root" name="Solicitudes IG" action="action_solicitudes" groups="group_ig_user"
+              web_icon="solicitudes_ig,web/icon.png" sequence="8"/>
+    <menuitem id="menu_web" name="Abrir la web" parent="menu_root" action="action_open_web" sequence="1"/>
+    <menuitem id="menu_solicitudes" name="Solicitudes" parent="menu_root" action="action_solicitudes" sequence="10"/>
+</odoo>

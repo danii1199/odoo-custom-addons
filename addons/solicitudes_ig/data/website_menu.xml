@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- «Solicitudes IG» en el menú del sitio web, solo para quien tenga el grupo. Odoo copia el menú para cada sitio:
+     los grupos se escriben en todas las copias, también al actualizar. -->
+<odoo>
+    <data noupdate="1">
+        <record id="website_menu_solicitudes" model="website.menu">
+            <field name="name">Solicitudes IG</field>
+            <field name="url">/solicitudes-ig</field>
+            <field name="parent_id" ref="website.main_menu"/>
+            <field name="sequence">40</field>
+        </record>
+    </data>
+    <data noupdate="0">
+        <function model="website.menu" name="write">
+            <function model="website.menu" name="search" eval="[[('manual_url', '=', '/solicitudes-ig')]]"/>
+            <value eval="{'group_ids': [(6, 0, [ref('group_ig_user')])]}"/>
+        </function>
+    </data>
+</odoo>

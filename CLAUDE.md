@@ -19,6 +19,7 @@ addons/                extra-addons: cada carpeta es un módulo (nombre técnico
   apachas/             módulo `apachas`: gastos compartidos tipo Splitwise (backend + web /apachas con permiso propio, correo y webhook n8n)
   overwatch/           módulo `overwatch`: selección de héroes al estilo del juego en el sitio web (/overwatch), favoritos, aleatorio, galería; datos/ con el catálogo exportado
   inicio_web/          módulo `inicio_web`: portada del sitio web (reloj, saludo, tarjetas por proyecto) y menú del sitio personalizable por usuario
+  solicitudes_ig/      módulo `solicitudes_ig`: cancelar a mano, por packs, las solicitudes pendientes de Instagram (web /solicitudes-ig, solo con su grupo)
   myspoty/             futuro módulo `myspoty` (aún sin manifest; app antigua en app/), CLAUDE.md y skills
 ```
 

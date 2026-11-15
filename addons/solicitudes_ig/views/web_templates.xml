@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- /solicitudes-ig: página del sitio web. La app la pinta web/app.js (servido por el controlador, solo con permiso). -->
+<odoo>
+    <template id="app_page" name="Solicitudes IG">
+        <t t-call="website.layout">
+            <t t-set="additional_title">Solicitudes IG</t>
+            <div id="wrap">
+                <link rel="stylesheet" t-attf-href="/solicitudes-ig/web/app.css?v=#{v}"/>
+                <div class="container my-4">
+                    <div id="ig-app" class="ig-app">
+                        <header class="ig-head">
+                            <h1>Solicitudes <span>IG</span></h1>
+                            <p class="ig-muted">Cancela a mano tus solicitudes de seguimiento pendientes, de pack en pack. Aquí no se
+                                conecta nada a Instagram: solo abre los perfiles.</p>
+                        </header>
+
+                        <section class="ig-stats" id="igStats"/>
+
+                        <section class="ig-card">
+                            <h2>1 · Importar</h2>
+                            <p class="ig-muted">Instagram → Centro de cuentas → <em>Tu información y permisos</em> → <em>Descargar tu
+                                información</em> → «Seguidores y seguidos». Dentro del zip:
+                                <code>connections/followers_and_following/pending_follow_requests.html</code> (o <code>.json</code>).
+                                También vale pegar los nombres, uno por línea.</p>
+                            <div class="ig-import">
+                                <input type="file" id="igFile" accept=".html,.htm,.json,.txt"/>
+                                <textarea id="igText" rows="3" placeholder="o pega aquí los usuarios, uno por línea"/>
+                                <label class="ig-check"><input type="checkbox" id="igCompleta" checked=""/> Es la lista completa:
+                                    lo que ya no salga, márcalo como resuelto</label>
+                                <button type="button" class="btn btn-primary" id="igImport">Importar</button>
+                            </div>
+                            <p class="ig-msg" id="igImportMsg"/>
+                        </section>
+
+                        <section class="ig-card">
+                            <h2>2 · Cancelar por packs</h2>
+                            <div class="ig-pack-bar">
+                                <button type="button" class="btn btn-primary btn-lg" id="igOpen">Abrir siguientes 10</button>
+                                <a class="btn btn-outline-light" id="igOpenOne" target="_blank" rel="noopener" title="Ctrl+clic (⌘+clic) o rueda: la abre detrás sin cambiar de pestaña">Abrir la siguiente</a>
+                                <label class="ig-muted">Tamaño del pack <select id="igSize"><option>5</option><option selected="">10</option><option>15</option><option>20</option></select></label>
+                                <button type="button" class="btn btn-outline-light" id="igAllDone" hidden="">✓ Todas las del pack, canceladas</button>
+                            </div>
+                            <p class="ig-muted">En cada pestaña: pulsa <strong>Solicitado</strong> → <strong>Dejar de seguir</strong> y ciérrala.
+                                Van de la más antigua a la más nueva. <strong>«Abrir la siguiente»</strong> con <kbd>Ctrl</kbd>+clic (<kbd>⌘</kbd>+clic en
+                                Mac) o con la rueda del ratón abre la pestaña detrás, sin sacarte de aquí; púlsalo tantas veces como cuentas tenga el pack
+                                y se bloquea cuando estén todas abiertas. Con un clic normal no se abre (te llevaría a ella).</p>
+                            <details class="ig-ayuda"><summary>¿Solo se abre una pestaña?</summary>
+                                <p>El navegador bloquea las demás hasta que permitas las ventanas emergentes de este sitio. Las bloqueadas se
+                                    quedan en el pack: púlsalas una a una o usa «Abrir la siguiente».</p>
+                                <ul>
+                                    <li><strong>Chrome / Edge (ordenador):</strong> icono de ventana bloqueada a la derecha de la barra de
+                                        direcciones → «Permitir siempre ventanas emergentes y redirecciones» → Listo, y vuelve a pulsar.</li>
+                                    <li><strong>Firefox:</strong> barra amarilla de arriba → Preferencias → «Permitir ventanas emergentes».</li>
+                                    <li><strong>Chrome en Android:</strong> candado de la barra → Permisos → «Ventanas emergentes y redirecciones» → Permitir.</li>
+                                    <li><strong>Safari (iPhone/iPad):</strong> no abre varias de golpe: usa «Abrir la siguiente».</li>
+                                </ul>
+                            </details>
+                            <p class="ig-msg" id="igPackMsg"/>
+                            <ul class="ig-list" id="igPack"/>
+                        </section>
+
+                        <section class="ig-card">
+                            <h2>Todas <small class="ig-muted" id="igCount"/></h2>
+                            <div class="ig-filter" id="igFilter">
+                                <button type="button" data-f="todo" class="active">Por hacer</button>
+                                <button type="button" data-f="hecha">Canceladas</button>
+                                <button type="button" data-f="resuelta">Ya no salen</button>
+                                <button type="button" data-f="all">Todas</button>
+                            </div>
+                            <ul class="ig-list" id="igAll"/>
+                        </section>
+                    </div>
+                </div>
+                <script t-attf-src="/solicitudes-ig/web/app.js?v=#{v}"/>
+            </div>
+        </t>
+    </template>
+</odoo>
