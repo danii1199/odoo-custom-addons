@@ -48,12 +48,13 @@
             <list>
                 <field name="user_id"/>
                 <field name="favorite_ids" widget="many2many_tags"/>
+                <field name="main_ids" widget="many2many_tags"/>
             </list>
         </field>
     </record>
 
     <record id="action_prefs" model="ir.actions.act_window">
-        <field name="name">Favoritos de los usuarios</field>
+        <field name="name">Favoritos y mains de los usuarios</field>
         <field name="res_model">ow.pref</field>
         <field name="view_mode">list</field>
     </record>

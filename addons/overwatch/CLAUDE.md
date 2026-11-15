@@ -76,6 +76,9 @@ tests/        test_overwatch.py: parser de la wiki, acceso por grupo, páginas y
   por sitio: para cambiar los grupos, escribe en todas las copias). Datos en `<script id="ow-data">`
   (JSON con `</` escapado). Estáticos con `?v=` = fecha del archivo más nuevo (se calcula al arrancar Odoo:
   reiniciar tras cambiar CSS/JS).
+- **Mains** (2026-11-11, pedido del usuario): `ow.pref.main_ids` (tabla `ow_pref_main_rel`), hasta `MAX_MAINS` = 3 por
+  rol (restricción en el modelo y 409 en `POST /overwatch/api/main`). Salen en 3 huecos encima de cada rol de la
+  selección y con corona en su casilla; botón «Marcar como main» o tecla M. Mismo permiso que los favoritos.
 - Selección: plantilla por roles en una cuadrícula de 2 filas (`--cols` desde JS), casillas con esquinas cortadas
   (dos capas con `clip-path`), fondo del héroe con velo. Favoritos: botón, clic derecho o tecla F. Aleatorio: R.
 - Ficha: pestañas con `#resumen`, `#historia`, `#aspectos`, `#gestos`, `#poses`, `#presentaciones`, `#grafitis`
@@ -160,6 +163,12 @@ tests/        test_overwatch.py: parser de la wiki, acceso por grupo, páginas y
   wiki. Web: sección «Tier Hack» arriba en `/overwatch/pases/<key>`; backend: pestaña en el pase.
 - **Carteles ampliables** (`img.ow-zoomable`: hoja de ruta de cada pase, imagen de cada evento): `<dialog class="ow-zoom">`
   con rueda, doble clic y botones para el zoom (1×–8×, alrededor del puntero) y arrastre para moverse (seasons.js).
+
+## Counters y perks (2026-11-06)
+
+Decisión del usuario: nada propio, solo el botón «Counters y perks en Toniki» de la ficha, que abre
+`https://www.tonikiraw.com/heroes/#h-<clave>` (la clave es la de OverFast). No se descarga nada de esa web. Si cambian las
+fichas de allí, se ajusta la URL en `hero_page` (views/web_templates.xml).
 
 ## Actualizar (desde la raíz del repo)
 

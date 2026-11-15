@@ -14,6 +14,7 @@ from odoo.http import request
 
 from ..models.cosmetic import RARITIES, TYPES
 from ..models.hero import ROLES
+from ..models.pref import MAX_MAINS
 from ..services import countdown
 
 STATIC_DIR = Path(__file__).resolve().parent.parent / "static" / "src"
@@ -113,18 +114,27 @@ class OverwatchWeb(http.Controller):
         pref = request.env["ow.pref"].search([("user_id", "=", request.env.uid)], limit=1)
         return set(pref.favorite_ids.ids)
 
+    def _main_ids(self):
+        if not self._can_fav():
+            return []
+        pref = request.env["ow.pref"].search([("user_id", "=", request.env.uid)], limit=1)
+        return pref.main_ids.ids
+
     @http.route("/overwatch", type="http", auth="public", methods=["GET"], website=True)
     def select(self, **kw):
         env = request.env(context=dict(request.env.context, bin_size=True))
         favs = self._fav_ids()
+        mains = self._main_ids()
         heroes = env["ow.hero"].search([])
         data = {
             "can_fav": self._can_fav(),
+            "mains": mains, "max_mains": MAX_MAINS,
             "roles": [{"key": k, "name": n} for k, n in ROLES],
             "heroes": [{
                 "id": h.id, "key": h.key, "name": h.name, "role": h.role, "subrole": h.subrole_name or "",
                 "description": h.description or "", "health": h.health, "armor": h.armor, "shields": h.shields,
                 "portrait": _portrait(h), "background": h.background_url or "", "fav": h.id in favs,
+                "main": h.id in mains,
                 "abilities": [{"name": a.name, "icon": a.icon_url or ""} for a in h.ability_ids if a.kind == "ability"],
             } for h in heroes],
         }
@@ -279,3 +289,28 @@ class OverwatchWeb(http.Controller):
         pref = request.env["ow.pref"].mine()
         pref.favorite_ids = [(4 if body.get("fav") else 3, hero.id)]
         return request.make_json_response({"favorites": pref.favorite_ids.ids})
+
+    @http.route("/overwatch/api/main", type="http", auth="user", methods=["POST"], csrf=False)
+    def main(self, **kw):
+        """Marca/desmarca un main. POST JSON {hero_id, main}, como /overwatch/api/favorito. Si ese rol ya tiene
+        MAX_MAINS, 409 con el mensaje; la lista se devuelve en el orden en que se marcaron."""
+        hr = request.httprequest
+        if hr.mimetype != "application/json":
+            return request.make_json_response({"error": "Se esperaba JSON"}, status=415)
+        if not request.env.user.has_group(GROUP):
+            return request.make_json_response({"error": "Sin acceso"}, status=403)
+        try:
+            body = json.loads(hr.get_data() or b"{}")
+            hero = request.env["ow.hero"].browse(int(body["hero_id"])).exists()
+        except (ValueError, KeyError, TypeError):
+            return request.make_json_response({"error": "Petición incorrecta"}, status=400)
+        if not hero:
+            return request.make_json_response({"error": "No existe ese héroe"}, status=404)
+        pref = request.env["ow.pref"].mine()
+        if body.get("main") and hero not in pref.main_ids and \
+                len(pref.main_ids.filtered(lambda h: h.role == hero.role)) >= MAX_MAINS:
+            rol = dict(ROLES)[hero.role].lower()
+            return request.make_json_response(
+                {"error": f"Ya tienes {MAX_MAINS} mains de {rol}: quita uno antes", "mains": pref.main_ids.ids}, status=409)
+        pref.main_ids = [(4 if body.get("main") else 3, hero.id)]
+        return request.make_json_response({"mains": pref.main_ids.ids})

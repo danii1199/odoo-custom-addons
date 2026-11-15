@@ -1,6 +1,7 @@
 import json
 from datetime import date
 
+from odoo.exceptions import ValidationError
 from odoo.tests import HttpCase, TransactionCase, tagged
 
 from ..services.wiki import parsear_tabla
@@ -101,6 +102,37 @@ class TestOverwatchWeb(HttpCase):
         otro = self.user.copy({"login": "otro-jugador"})
         self.env["ow.pref"].with_user(otro).mine()
         self.assertEqual(self.env["ow.pref"].with_user(self.user).search([]), pref)
+
+
+    def test_mains(self):
+        """Hasta 3 por rol; el cuarto da 409 y no se guarda. Sin el grupo, 403."""
+        def main(hero, value):
+            return self.url_open("/overwatch/api/main", data=json.dumps({"hero_id": hero.id, "main": value}),
+                                 headers={"Content-Type": "application/json"})
+        self.authenticate("sinacceso", "sinacceso-1234")
+        self.assertEqual(main(self.ana, True).status_code, 403, "sin el grupo")
+        self.assertNotIn('data-action="main"', self.url_open("/overwatch").text)
+        self.authenticate("jugador", "jugador-1234")
+        tanques = [self.rein] + [self.env["ow.hero"].create({"key": f"test-tanque-{i}", "name": f"Tanque {i}", "role": "tank"})
+                                 for i in range(3)]
+        for t in tanques[:3]:
+            self.assertEqual(main(t, True).status_code, 200)
+        r = main(tanques[3], True)
+        self.assertEqual(r.status_code, 409)
+        self.assertIn("3 mains de tanque", r.json()["error"])
+        self.assertEqual(main(self.ana, True).status_code, 200, "otro rol sí cabe")
+        pref = self.env["ow.pref"].search([("user_id", "=", self.user.id)])
+        self.assertEqual(pref.main_ids, tanques[0] | tanques[1] | tanques[2] | self.ana)
+        self.assertEqual(main(tanques[0], False).json()["mains"], (tanques[1] | tanques[2] | self.ana).ids)
+        self.assertEqual(main(tanques[3], True).status_code, 200, "tras quitar uno, cabe")
+        self.assertFalse(pref.favorite_ids, "los mains no tocan los favoritos")
+        with self.assertRaises(ValidationError):
+            pref.main_ids = [(4, tanques[0].id)]
+            pref.flush_recordset()
+        pagina = self.url_open("/overwatch").text
+        self.assertIn('data-action="main"', pagina)
+        self.assertIn("ow-roster-mains", pagina)
+        self.assertIn('"max_mains": 3', pagina)
 
 
 @tagged("post_install", "-at_install")
@@ -560,3 +592,18 @@ Current Skin Pool is:
         r = self.url_open("/overwatch/pases/2026-s5").text
         self.assertIn("Tier Hack", r)
         self.assertIn(f'href="/overwatch/heroe/heroe-hack#aspectos/{cos.id}"', r)
+
+
+@tagged("post_install", "-at_install")
+class TestEnlaceYBotones(HttpCase):
+
+    def test_enlace_a_la_ficha(self):
+        self.env["ow.hero"].create({"key": "test-enlace", "name": "Enlace", "role": "tank"})
+        pagina = self.url_open("/overwatch/heroe/test-enlace").text
+        self.assertIn("https://www.tonikiraw.com/heroes/#h-test-enlace", pagina)
+
+    def test_boton_actualizar_admite_ids(self):
+        """Los botones mandan siempre los ids de las filas marcadas: @api.model daría un TypeError."""
+        for modelo in ("ow.hero", "ow.season", "ow.change"):
+            metodo = type(self.env[modelo]).action_check_updates
+            self.assertFalse(getattr(metodo, "_api_model", False), modelo)

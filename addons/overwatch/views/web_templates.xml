@@ -52,6 +52,7 @@
                     <div class="ow-hero-stats"/>
                     <div class="ow-hero-buttons">
                         <button t-if="can_fav" type="button" class="ow-btn ow-btn-fav" data-action="fav"><span class="ow-star">☆</span> <span class="ow-fav-label">Añadir a favoritos</span></button>
+                        <button t-if="can_fav" type="button" class="ow-btn ow-btn-main" data-action="main"><span class="ow-main-mark">♛</span> <span class="ow-main-label">Marcar como main</span></button>
                         <a class="ow-btn ow-btn-primary ow-btn-details" href="#">Ficha del héroe ›</a>
                     </div>
                 </section>
@@ -77,6 +78,8 @@
                 </div>
                 <div class="ow-roster-groups">
                     <div t-foreach="['tank', 'damage', 'support']" t-as="r" t-attf-class="ow-roster-group ow-role-{{r}}" t-att-data-role="r">
+                        <!-- Mains de ese rol (los pone select.js) -->
+                        <div t-if="can_fav" class="ow-roster-mains" aria-label="Mains"/>
                         <div class="ow-roster-head"><t t-call="overwatch.role_icon" role="r"/></div>
                         <div class="ow-roster-tiles"/>
                     </div>
@@ -108,6 +111,7 @@
                     <h1 class="ow-hero-name" t-out="hero.name"/>
                 </div>
                 <button t-if="can_fav" type="button" class="ow-btn ow-btn-fav" data-action="fav"><span class="ow-star">☆</span> <span class="ow-fav-label">Añadir a favoritos</span></button>
+                <a class="ow-btn" t-attf-href="https://www.tonikiraw.com/heroes/#h-#{hero.key}" target="_blank" rel="noopener">Counters y perks en Toniki ›</a>
             </div>
 
             <nav class="ow-tabs" role="tablist">

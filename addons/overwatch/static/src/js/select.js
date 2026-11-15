@@ -2,8 +2,10 @@
    - Plantilla abajo por roles (tanque, daño, apoyo); clic = ver el héroe (fondo, nombre, rol, datos, habilidades).
    - Favoritos: botón «Añadir a favoritos» o clic derecho en una casilla; se guardan en la cuenta (POST JSON).
      «★ Favoritos» filtra la plantilla. Sin permiso (visitantes) no hay favoritos: data.can_fav = false.
+   - Mains: hasta data.max_mains por rol (botón «Marcar como main», tecla M); salen en huecos encima de su rol y
+     con una corona en su casilla. El servidor manda: si el rol ya está lleno, devuelve 409 y el aviso.
    - Aleatorio: entre los favoritos (o todos) y por rol; recorre las casillas cada vez más despacio hasta pararse.
-   - Teclado: ← → cambian de héroe, R sortea, F marca favorito, Enter abre la ficha.
+   - Teclado: ← → cambian de héroe, R sortea, F marca favorito, M marca main, Enter abre la ficha.
    El héroe elegido se recuerda en la URL (#ana) para volver a él desde la ficha. */
 (function () {
     "use strict";
@@ -30,12 +32,12 @@
             for (const h of list) {
                 const b = document.createElement("button");
                 b.type = "button";
-                b.className = "ow-tile" + (h.fav ? " fav" : "");
+                b.className = "ow-tile" + (h.fav ? " fav" : "") + (h.main ? " main" : "");
                 b.title = `${h.name} (clic derecho: favorito)`;
                 b.dataset.id = h.id;
                 b.innerHTML = `<span class="ow-tile-frame"></span><span class="ow-tile-inner">${
                     h.portrait ? `<img src="${esc(h.portrait)}" alt="" loading="lazy">` : `<span class="ow-tile-initial">${esc(h.name[0])}</span>`
-                }</span><span class="ow-tile-fav">★</span>`;
+                }</span><span class="ow-tile-fav">★</span><span class="ow-tile-main">♛</span>`;
                 b.addEventListener("click", () => !spinning && select(h));
                 b.addEventListener("contextmenu", (ev) => {
                     ev.preventDefault();
@@ -46,6 +48,7 @@
             }
             if (!list.length) box.innerHTML = '<span class="ow-roster-empty">Sin héroes</span>';
         }
+        renderMains();
         fitRoster();
         window.addEventListener("resize", fitRoster);
         if (!heroes.length) {
@@ -101,6 +104,7 @@
         if (!h) return;
         current = h;
         tiles.forEach((b, id) => b.classList.toggle("selected", id === h.id));
+        $$(".ow-main-slot[data-id]").forEach((b) => b.classList.toggle("selected", +b.dataset.id === h.id));
         $(".ow-hero-role-icon").innerHTML = roleIcon(h.role);
         $(".ow-hero-subrole").textContent = [roleNames[h.role], h.subrole].filter(Boolean).join(" · ");
         const name = $(".ow-hero-name");
@@ -116,6 +120,7 @@
             .join("");
         $(".ow-btn-details").href = `/overwatch/heroe/${encodeURIComponent(h.key)}`;
         updateFavButton();
+        updateMainButton();
         setBackground(h.background);
         if (!quiet) history.replaceState(null, "", `#${h.key}`);
     }
@@ -160,6 +165,82 @@
             tiles.get(h.id).classList.toggle("fav", h.fav);
             if (h === current) updateFavButton();
             message("No se ha podido guardar el favorito");
+        }
+    }
+
+    // ---------------------------------------------------------------- mains
+    let mainOrder = data.mains || []; // en el orden en que se marcaron
+
+    function renderMains() {
+        for (const group of $$(".ow-roster-group")) {
+            const box = $(".ow-roster-mains", group);
+            if (!box) continue;
+            const list = mainOrder.map((id) => byId.get(id)).filter((h) => h && h.role === group.dataset.role);
+            box.innerHTML = "";
+            for (let i = 0; i < data.max_mains; i++) {
+                const h = list[i];
+                const b = document.createElement("button");
+                b.type = "button";
+                b.className = "ow-main-slot" + (h ? "" : " empty") + (h && h === current ? " selected" : "");
+                if (h) {
+                    b.dataset.id = h.id;
+                    b.title = `${h.name} (main)`;
+                    b.innerHTML = h.portrait ? `<img src="${esc(h.portrait)}" alt="">` : `<span>${esc(h.name[0])}</span>`;
+                    b.addEventListener("click", () => !spinning && select(h));
+                } else {
+                    b.title = "Hueco libre: elige un héroe de este rol y pulsa «Marcar como main» (o la tecla M)";
+                    b.tabIndex = -1;
+                }
+                box.appendChild(b);
+            }
+        }
+    }
+
+    function updateMainButton() {
+        const btn = $(".ow-btn-main");
+        if (!btn) return;
+        const main = current && current.main;
+        btn.classList.toggle("active", !!main);
+        $(".ow-main-label", btn).textContent = main ? "Main" : "Marcar como main";
+    }
+
+    function applyMains(ids) {
+        mainOrder = ids;
+        const set = new Set(ids);
+        heroes.forEach((x) => {
+            x.main = set.has(x.id);
+            tiles.get(x.id).classList.toggle("main", x.main);
+        });
+        renderMains();
+        updateMainButton();
+    }
+
+    async function toggleMain(h) {
+        if (!canFav) return;
+        const want = !h.main;
+        if (want && mainOrder.filter((id) => byId.get(id)?.role === h.role).length >= data.max_mains) {
+            return message(`Ya tienes ${data.max_mains} mains de ${roleNames[h.role].toLowerCase()}: quita uno antes`);
+        }
+        const before = mainOrder;
+        applyMains(want ? [...mainOrder, h.id] : mainOrder.filter((id) => id !== h.id));
+        try {
+            const r = await fetch("/overwatch/api/main", {
+                method: "POST",
+                credentials: "same-origin",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ hero_id: h.id, main: want }),
+            });
+            const res = await r.json().catch(() => ({}));
+            if (!r.ok) {
+                applyMains(res.mains || before);
+                return message(res.error || "No se ha podido guardar el main");
+            }
+            // Conserva el orden de la pantalla y añade lo que venga del servidor (otra pestaña…)
+            const server = new Set(res.mains);
+            applyMains([...mainOrder.filter((id) => server.has(id)), ...res.mains.filter((id) => !mainOrder.includes(id))]);
+        } catch {
+            applyMains(before); // no se pudo guardar: se deshace
+            message("No se ha podido guardar el main");
         }
     }
 
@@ -231,7 +312,10 @@
     }
 
     function bind() {
-        if (canFav) $("[data-action=fav]").addEventListener("click", () => current && toggleFav(current));
+        if (canFav) {
+            $("[data-action=fav]").addEventListener("click", () => current && toggleFav(current));
+            $("[data-action=main]").addEventListener("click", () => current && toggleMain(current));
+        }
         $("[data-action=random]").addEventListener("click", spin);
         $$("[data-random-role]").forEach((b) =>
             b.addEventListener("click", () => {
@@ -248,6 +332,7 @@
                 ev.preventDefault();
             } else if (ev.key.toLowerCase() === "r") spin();
             else if (ev.key.toLowerCase() === "f" && current) toggleFav(current);
+            else if (ev.key.toLowerCase() === "m" && current) toggleMain(current);
             else if (ev.key === "Enter" && current) location.href = $(".ow-btn-details").href;
         });
     }

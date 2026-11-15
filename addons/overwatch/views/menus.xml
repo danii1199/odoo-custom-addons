@@ -18,5 +18,5 @@
     <menuitem id="menu_changes" name="Novedades" parent="menu_root" action="action_changes" sequence="40"/>
     <menuitem id="menu_config" name="Configuración" parent="menu_root" sequence="90" groups="group_ow_manager"/>
     <menuitem id="menu_import" name="Actualizar catálogo" parent="menu_config" action="action_import_wizard" sequence="1"/>
-    <menuitem id="menu_prefs" name="Favoritos de los usuarios" parent="menu_config" action="action_prefs" sequence="2"/>
+    <menuitem id="menu_prefs" name="Favoritos y mains de los usuarios" parent="menu_config" action="action_prefs" sequence="2"/>
 </odoo>

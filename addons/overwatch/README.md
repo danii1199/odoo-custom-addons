@@ -7,6 +7,7 @@ sitio (`/overwatch`), visible para todo el mundo (sin sesión, solo para mirar; 
   vida y habilidades.
 - **Favoritos**: «Añadir a favoritos», clic derecho en un héroe o la tecla F. Se guardan en tu cuenta. «★ Favoritos»
   muestra solo los tuyos.
+- **Mains**: hasta 3 por rol con «Marcar como main» (o la tecla M). Salen encima de su rol en la selección.
 - **Aleatorio**: elige rol (cualquiera, tanque, daño o apoyo) y si sortear solo entre tus favoritos, y pulsa
   *Aleatorio* (o la tecla R). Las casillas se recorren hasta pararse en el elegido.
 - **Ficha del héroe**: habilidades con su vídeo, ventajas, datos, **historia** completa con su **vídeo de origen**,
@@ -17,6 +18,7 @@ sitio (`/overwatch`), visible para todo el mundo (sin sesión, solo para mirar; 
   [wiki de Overwatch](https://overwatch.fandom.com)). Gratis y sin claves; no borra nada. Úsalo cuando salga un héroe
   o una temporada nueva. Las imágenes de cosméticos se ven directamente desde la wiki; si alguna no carga, puedes
   subir una propia en *Cosméticos*.
+- **Counters y perks**: la ficha de cada héroe tiene un botón que abre su página en [Toniki](https://www.tonikiraw.com).
 - **Copia local**: el módulo trae el catálogo exportado en `datos/`. En *Actualizar catálogo* elige «Copia local» para
   cargarlo en una base sin descargar nada.
 

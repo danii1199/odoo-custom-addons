@@ -42,8 +42,8 @@ class OwChangeButton(models.AbstractModel):
     _name = "ow.update.mixin"
     _description = "Botón «Buscar actualizaciones»"
 
-    @api.model
     def action_check_updates(self):
+        """Sin @api.model: los botones siempre mandan los ids de las filas marcadas (aquí no se usan)."""
         return buscar_actualizaciones(self.env)
 
     @api.model
